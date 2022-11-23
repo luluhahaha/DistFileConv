@@ -82,7 +82,6 @@ class Writer(AbstractWriter):
     author: Nicolas Gensollen. October 2017.
     """
 
-
     register_names = ["dss", "opendss", "OpenDSS", "DSS"]
 
     def __init__(self, **kwargs):
@@ -351,10 +350,9 @@ class Writer(AbstractWriter):
                     txt = ""
                     if substation_name + "_" + feeder_name in feeder_text_map:
                         txt = feeder_text_map[substation_name + "_" + feeder_name]
-                    name = i.name.lower() #Adedoyin
-                    name = name.replace(".", "_") #Adedoyin
+
                     txt += "{name} {X} {Y}\n".format(
-                        name=name, X=i.positions[0].long, Y=i.positions[0].lat
+                        name=i.name.lower(), X=i.positions[0].long, Y=i.positions[0].lat
                     )
                     feeder_text_map[substation_name + "_" + feeder_name] = txt
 
@@ -409,7 +407,6 @@ class Writer(AbstractWriter):
 
         return 1
 
-
     def write_transformers(self, model):
         """Write the transformers to an OpenDSS file (Transformers.dss by default).
 
@@ -426,7 +423,7 @@ class Writer(AbstractWriter):
         # Create and open the transformer DSS file
         substation_text_map = {}
         feeder_text_map = {}
-        pri_volt_list = []
+
         # Loop over the DiTTo objects
         for i in model.models:
             # If we get a transformer object...
@@ -612,16 +609,14 @@ class Writer(AbstractWriter):
 
                             # Voltage type (Not mapped)
 
-
                             # Nominal voltage
                             if (
                                 hasattr(winding, "nominal_voltage")
                                 and winding.nominal_voltage is not None
                             ):
                                 txt += " Kv={kv}".format(
-                                    kv=round(winding.nominal_voltage * 10 ** -3, 4)
+                                    kv=winding.nominal_voltage * 10 ** -3
                                 )  # OpenDSS in kvolts
-
                                 if (
                                     not substation_name + "_" + feeder_name
                                     in self._baseKV_feeders_
@@ -630,29 +625,28 @@ class Writer(AbstractWriter):
                                         substation_name + "_" + feeder_name
                                     ] = set()
 
-                                # if (
-                                #     winding.nominal_voltage < 300
-                                # ):  # Line-Neutral voltage for 120 V
-                                #     self._baseKV_.add(
-                                #         winding.nominal_voltage
-                                #         * math.sqrt(3)
-                                #         * 10 ** -3
-                                #     )
-                                #     self._baseKV_feeders_[
-                                #         substation_name + "_" + feeder_name
-                                #     ].add(
-                                #         winding.nominal_voltage
-                                #         * math.sqrt(3)
-                                #         * 10 ** -3
-                                #     )
-                                # else:
-                                self._baseKV_.add(
-                                    winding.nominal_voltage * 10 ** -3
-                                )
-                                self._baseKV_feeders_[
-                                    substation_name + "_" + feeder_name
-                                ].add(winding.nominal_voltage * 10 ** -3)
-                            pri_volt_list.append(round(winding.nominal_voltage * 10 ** -3, 4))  # Adedoyin
+                                if (
+                                    winding.nominal_voltage < 300
+                                ):  # Line-Neutral voltage for 120 V
+                                    self._baseKV_.add(
+                                        winding.nominal_voltage
+                                        * math.sqrt(3)
+                                        * 10 ** -3
+                                    )
+                                    self._baseKV_feeders_[
+                                        substation_name + "_" + feeder_name
+                                    ].add(
+                                        winding.nominal_voltage
+                                        * math.sqrt(3)
+                                        * 10 ** -3
+                                    )
+                                else:
+                                    self._baseKV_.add(
+                                        winding.nominal_voltage * 10 ** -3
+                                    )
+                                    self._baseKV_feeders_[
+                                        substation_name + "_" + feeder_name
+                                    ].add(winding.nominal_voltage * 10 ** -3)
 
                             # rated power
                             if (
@@ -695,7 +689,6 @@ class Writer(AbstractWriter):
 
                                 if buses is not None:
                                     bus = buses[cnt]
-                                    bus = bus.replace(".", "_")
                                     txt += " bus={bus}".format(bus=str(bus))
 
                                 if len(winding.phase_windings) != 3:
@@ -799,10 +792,8 @@ class Writer(AbstractWriter):
                             if buses is not None:
 
                                 if cnt == 0 or cnt == 1:
-                                    buses[cnt] = buses[cnt].replace(".", "_") # Adedoyin
                                     txt += " bus={b}".format(b=buses[cnt])
                                 elif cnt == 2:
-                                    buses[cnt - 1] = buses[cnt - 1].replace(".", "_")  # Adedoyin
                                     txt += " bus={b}".format(b=buses[cnt - 1])
 
                                 # These are the configurations for center tap transformers
@@ -861,7 +852,7 @@ class Writer(AbstractWriter):
                                 and winding.nominal_voltage is not None
                             ):
                                 txt += " Kv={kv}".format(
-                                    kv=round(winding.nominal_voltage * 10 ** -3, 4)
+                                    kv=winding.nominal_voltage * 10 ** -3
                                 )  # OpenDSS in kvolts
                                 if (
                                     not substation_name + "_" + feeder_name
@@ -965,64 +956,7 @@ class Writer(AbstractWriter):
                             )
 
                 txt += "\n\n"
-
-
-
-
-                                    # fp.write("New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
-                                    #     name=obj.connecting_element))
-
-                                # else:
-                                #     logger.warning(
-                                #         "No valid name for connecting element of source {}. Using name of the source instead...".format(
-                                #             cleaned_name
-                                #         )
-                                #     )
-                                #     fp.write("New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
-                                #         name=cleaned_name))
-
                 feeder_text_map[substation_name + "_" + feeder_name] = txt
-###############Adedoyin#################
-        for obj in model.models:
-            if (
-                    isinstance(obj, PowerSource) and obj.is_sourcebus == 1
-            ):
-                if (
-                        hasattr(obj, "nominal_voltage")
-                        and obj.nominal_voltage is not None
-                ):
-                    if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
-                        # For RNM datasets only one source exists.
-                        if "_src" in obj.name:
-                            cleaned_name = obj.name[:-4]
-                        else:
-                            cleaned_name = obj.name
-                        if (
-                                hasattr(obj, "connecting_element")
-                                and obj.connecting_element is not None
-                        ):
-                            txt = "New Transformer.Sub phases=3 windings=2 wdg=1 conn=delta kv={volt} kva=50.0 %R=(.5 1000 /) bus={name} ".format(
-                                name=obj.connecting_element, volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                            txt += "wdg=2 conn=wye kv={volt} kva=50 %R=(.5 1000 /) bus={name}-1 XHL=(8 1000 /)".format(
-                                volt=max(pri_volt_list), name=obj.connecting_element)
-
-                            feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
-
-                        else:
-                            logger.warning(
-                                "No valid name for connecting element of source {}. Using name of the source instead...".format(
-                                    cleaned_name
-                                )
-                            )
-                            txt = "New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
-                                name=obj.connecting_element)
-                            txt += "conn=delta kv={volt} ".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                            txt += "kva=50 %r=(.5 1000 /) wdg=2 bus={name}-1 conn=wye kv={volt} kva=50 %r=(.5 1000 /)".format(
-                                volt=max(pri_volt_list), name=obj.connecting_element)
-
-                            feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
-                            ###############Adedoyin#################
-
 
         for substation_name in substation_text_map:
             for feeder_name in substation_text_map[substation_name]:
@@ -1082,7 +1016,6 @@ class Writer(AbstractWriter):
                             output_redirect, self.output_filenames["transformers"]
                         )
                     )
-
 
         return 1
 
@@ -1162,7 +1095,7 @@ class Writer(AbstractWriter):
                 # nominal_voltage
                 if hasattr(i, "nominal_voltage") and i.nominal_voltage is not None:
                     txt += " kV={volt}".format(
-                        volt=round(i.nominal_voltage * 10 ** -3, 4)
+                        volt=i.nominal_voltage * 10 ** -3
                     )  # DiTTo in volts
                     if not substation_name + "_" + feeder_name in self._baseKV_feeders_:
                         self._baseKV_feeders_[
@@ -1383,11 +1316,11 @@ class Writer(AbstractWriter):
                 if hasattr(i, "nominal_voltage") and i.nominal_voltage is not None:
                     if i.nominal_voltage < 300:
                         txt += " kV={kV}".format(
-                            kV=round(i.nominal_voltage * math.sqrt(3) * 10 ** -3, 4)
+                            kV=i.nominal_voltage * math.sqrt(3) * 10 ** -3
                         )  # DiTTo in volts
                     else:
                         txt += " kV={kV}".format(
-                            kV=round(i.nominal_voltage * 10 ** -3, 4)
+                            kV=i.nominal_voltage * 10 ** -3
                         )  # DiTTo in volts
                     if not substation_name + "_" + feeder_name in self._baseKV_feeders_:
                         self._baseKV_feeders_[
@@ -1413,11 +1346,11 @@ class Writer(AbstractWriter):
                     ):
                         if parent.nominal_voltage < 300:
                             txt += " kV={kV}".format(
-                                kV=round(parent.nominal_voltage * math.sqrt(3) * 10 ** -3, 4)
+                                kV=parent.nominal_voltage * math.sqrt(3) * 10 ** -3
                             )  # DiTTo in volts
                         else:
                             txt += " kV={kV}".format(
-                                kV=round(parent.nominal_voltage * 10 ** -3, 4)
+                                kV=parent.nominal_voltage * 10 ** -3
                             )  # DiTTo in volts
                         if (
                             not substation_name + "_" + feeder_name
@@ -1895,37 +1828,16 @@ class Writer(AbstractWriter):
                     hasattr(i, "connecting_element")
                     and i.connecting_element is not None
                 ):
-                    i.connecting_element = i.connecting_element.replace(".", "_") #Adedoyin
                     txt += " bus1={bus}".format(bus=i.connecting_element)
-
                     if hasattr(i, "phase_loads") and i.phase_loads is not None:
-                        #Adedoyin
-                        if len(i.phase_loads) == 6:
-                            temp = [i.phase_loads[0].phase, i.phase_loads[1].phase, i.phase_loads[2].phase,
-                                    i.phase_loads[3].phase, i.phase_loads[4].phase, i.phase_loads[5].phase]
-                            temp = [*set(temp)]
-
-                            for t in temp:
-                                p = self.phase_mapping(t)
-                                txt += ".{p}".format(
-                                    p=p
-                                )
-
-                        elif len(i.phase_loads) == 2:
-                            phase_load = i.phase_loads[0]
-                        # for phase_load in i.phase_loads:
+                        for phase_load in i.phase_loads:
                             if (
                                 hasattr(phase_load, "phase")
                                 and phase_load.phase is not None
                             ):
-                                p = self.phase_mapping(phase_load.phase)
                                 txt += ".{p}".format(
-                                    p=p
+                                    p=self.phase_mapping(phase_load.phase)
                                 )
-
-
-
-
 
                         if i.connection_type == "D" and len(i.phase_loads) == 1:
                             if self.phase_mapping(i.phase_loads[0].phase) == 1:
@@ -1937,12 +1849,12 @@ class Writer(AbstractWriter):
 
                 # nominal voltage
                 if hasattr(i, "nominal_voltage") and i.nominal_voltage is not None:
-                    # if i.nominal_voltage < 300:
-                    #     txt += " kV={volt}".format(
-                    #         volt=round(i.nominal_voltage * math.sqrt(3) * 10 ** -3, 4)
-                    #     )
-                    # else:
-                    txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3, 4))
+                    if i.nominal_voltage < 300:
+                        txt += " kV={volt}".format(
+                            volt=i.nominal_voltage * math.sqrt(3) * 10 ** -3
+                        )
+                    else:
+                        txt += " kV={volt}".format(volt=i.nominal_voltage * 10 ** -3)
                     if not substation_name + "_" + feeder_name in self._baseKV_feeders_:
                         self._baseKV_feeders_[
                             substation_name + "_" + feeder_name
@@ -1990,14 +1902,11 @@ class Writer(AbstractWriter):
                 if hasattr(i, "phase_loads") and i.phase_loads:
 
                     # if i.connection_type=='Y':
-                    # txt += " Phases={N}".format(N=len(i.phase_loads))
-                    txt += " Phases={N}".format(N=int(len(i.phase_loads) / 2)) #Adedoyin
+                    txt += " Phases={N}".format(N=len(i.phase_loads))
                     # elif i.connection_type=='D' and len(i.phase_loads)==3:
                     #    fp.write(' Phases=3')
                     # elif i.connection_type=='D' and len(i.phase_loads)==2:
                     #    fp.write(' Phases=1')
-
-
 
                     for phase_load in i.phase_loads:
 
@@ -2603,7 +2512,6 @@ class Writer(AbstractWriter):
 
                 # Connecting element
                 if i.connecting_element is not None:
-                    i.connecting_element = i.connecting_element.replace(".", "_")
                     txt += " Bus1=" + i.connecting_element
 
                     # For a 3-phase capbank we don't add any suffixes to the output.
@@ -2632,7 +2540,7 @@ class Writer(AbstractWriter):
                 # nominal_voltage
                 if hasattr(i, "nominal_voltage") and i.nominal_voltage is not None:
                     txt += " Kv={volt}".format(
-                        volt=round(i.nominal_voltage * 10 ** -3, 4)
+                        volt=i.nominal_voltage * 10 ** -3
                     )  # OpenDSS in Kvolts
                     if not substation_name + "_" + feeder_name in self._baseKV_feeders_:
                         self._baseKV_feeders_[
@@ -2823,7 +2731,6 @@ class Writer(AbstractWriter):
         # - otherwise it goes to the linecode group
         lines_to_geometrify = []
         lines_to_linecodify = []
-        pri_volt_list = []
         for i in model.models:
             if isinstance(i, Line):
                 use_linecodes = False
@@ -2943,7 +2850,6 @@ class Writer(AbstractWriter):
 
                 # from_element
                 if hasattr(i, "from_element") and i.from_element is not None:
-                    i.from_element = i.from_element.replace(".", "_") #Adedoyin
                     txt += " bus1={from_el}".format(from_el=i.from_element)
                     if hasattr(i, "wires") and i.wires is not None:
                         for wire in i.wires:
@@ -2956,7 +2862,6 @@ class Writer(AbstractWriter):
 
                 # to_element
                 if hasattr(i, "to_element") and i.to_element is not None:
-                    i.to_element = i.to_element.replace(".", "_") #Adedoyin
                     txt += " bus2={to_el}".format(to_el=i.to_element)
                     if hasattr(i, "wires") and i.wires is not None:
                         for wire in i.wires:
@@ -3027,74 +2932,7 @@ class Writer(AbstractWriter):
                     txt += fuse_line
                     txt += "\n\n"
 
-#Adedoyin begin
-                for i in model.models:
-                    # If we get a transformer object...
-                    if isinstance(i, PowerTransformer):
-                        if hasattr(i, "windings") and i.windings is not None:
-                            if len(i.windings) == 2:
-                                for cnt, winding in enumerate(i.windings):
-                                    if (
-                                            hasattr(winding, "nominal_voltage")
-                                            and winding.nominal_voltage is not None
-                                    ):
-                                        if (
-                                                not substation_name + "_" + feeder_name
-                                                    in self._baseKV_feeders_
-                                        ):
-                                            self._baseKV_feeders_[
-                                                substation_name + "_" + feeder_name
-                                                ] = set()
-                                        self._baseKV_.add(
-                                            winding.nominal_voltage * 10 ** -3
-                                        )
-                                        self._baseKV_feeders_[
-                                            substation_name + "_" + feeder_name
-                                            ].add(winding.nominal_voltage * 10 ** -3)
-                                    pri_volt_list.append(round(winding.nominal_voltage * 10 ** -3, 4))
-
-
-                for obj in model.models:
-                        if (
-                                isinstance(obj, PowerSource) and obj.is_sourcebus == 1
-                        ):
-                            if (
-                                    hasattr(obj, "nominal_voltage")
-                                    and obj.nominal_voltage is not None
-                            ):
-                                if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
-                                    # For RNM datasets only one source exists.
-                                    if "_src" in obj.name:
-                                        cleaned_name = obj.name[:-4]
-                                    else:
-                                        cleaned_name = obj.name
-                                    if (
-                                            hasattr(obj, "connecting_element")
-                                            and obj.connecting_element is not None
-                                    ):
-                                        idx1 = txt.find('bus1={name}.1.2.3'.format(name=obj.connecting_element))
-                                        idx2 = txt.find('New Line', idx1-50)
-                                        idx3 = txt.find('\n\n', idx2+2)
-
-                                        txt_new = ""
-                                        if substation_name + "_" + feeder_name in feeder_text_map:
-                                            txt_new = feeder_text_map[substation_name + "_" + feeder_name]
-
-                                        txt_new = txt[:idx2] + '' + txt[idx3 + 1:]
-
-                                        # else:
-                                        #     logger.warning(
-                                        #         "No valid name for connecting element of source {}. Using name of the source instead...".format(
-                                        #             cleaned_name
-                                        #         )
-                                        #     )
-                                        # txt = "New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
-                                        #     name=obj.connecting_element)
-                                        # txt += "conn=delta kv={volt} ".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                                        # txt += "kva=50 %r=(.5 1000 /) wdg=2 bus={name}-1 conn=wye kv={volt} kva=50 %r=(.5 1000 /)".format(
-                                        #     volt=max(pri_volt_list), name=obj.connecting_element)
-                                        feeder_text_map[substation_name + "_" + feeder_name] = txt
-        # Adedoyin end
+                feeder_text_map[substation_name + "_" + feeder_name] = txt
 
         for substation_name in substation_text_map:
             for feeder_name in substation_text_map[substation_name]:
@@ -3929,8 +3767,6 @@ class Writer(AbstractWriter):
             os.path.join(self.output_path, self.output_filenames["master"]), "w"
         ) as fp:
             fp.write("Clear\n\nNew Circuit.Full_Network ")
-
-
             for obj in model.models:
                 if (
                     isinstance(obj, PowerSource) and obj.is_sourcebus == 1
@@ -3965,7 +3801,7 @@ class Writer(AbstractWriter):
                         and obj.nominal_voltage is not None
                     ):
                         fp.write(
-                            " basekV={volt}".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
+                            " basekV={volt}".format(volt=obj.nominal_voltage * 10 ** -3)
                         )  # DiTTo in volts
 
                     if (
@@ -3993,7 +3829,6 @@ class Writer(AbstractWriter):
                         )
 
             fp.write("\n\n")
-
 
             # Write WireData.dss first if it exists
             if self.output_filenames["wiredata"] in self.files_to_redirect:
@@ -4044,74 +3879,9 @@ class Writer(AbstractWriter):
 
             _baseKV_list_ = list(self._baseKV_)
             _baseKV_list_ = sorted(_baseKV_list_)
-            _baseKV_list_round_ = []
-            for i in _baseKV_list_:
-                temp = round(i, 4)
-                _baseKV_list_round_.append(temp)
-
-
-############################################## Adedoyin ##############################################
-#Adding energy meter to the first line connected to the source
-            fp.write("\nNew energymeter.M1 element=Transformer.Sub terminal=1\n")
-###################################################################################################################
-
-            fp.write("\nSet Voltagebases={}\n".format(_baseKV_list_round_))
+            fp.write("\nSet Voltagebases={}\n".format(_baseKV_list_))
 
             fp.write("\nCalcvoltagebases\n\n")
-
-############################################## Adedoyin ##############################################
-            # for i in model.models:
-            #
-            #     if isinstance(i, PowerTransformer):
-            #         if hasattr(i, "from_element") and i.from_element is not None:
-            #             bus1 = i.from_element
-            #         else:
-            #             bus1 = None
-            #         if hasattr(i, "to_element") and i.to_element is not None:
-            #             bus2 = i.to_element
-            #         else:
-            #             bus2 = None
-            #
-            #         if bus1 is not None and bus2 is not None:
-            #             buses = [bus1, bus2]
-            #         else:
-            #             buses = None
-            #         bus2 = bus2.replace(".", "_")
-            #         bus1 = bus1.replace(".", "_")
-            #
-            #
-            #         if hasattr(i, "windings") and i.windings is not None:
-            #
-            #             if len(i.windings) == 2:
-            #
-            #                 for cnt, winding in enumerate(i.windings):
-            #
-            #
-            #                     if (
-            #                             hasattr(winding, "nominal_voltage")
-            #                             and winding.nominal_voltage is not None
-            #                     ):
-            #                         txt = "{kv}".format(
-            #                             kv=round(i.windings[0].nominal_voltage * 10 ** -3, 3)
-            #                         )  # OpenDSS in kvolts
-            #                         fp.write("\nSetkVBase Bus={txt1} kVLL={txt2}\n".format(txt1=bus1, txt2=txt))
-            #
-            #         if hasattr(i, "windings") and i.windings is not None:
-            #
-            #             for cnt, winding in enumerate(i.windings):
-            #
-            #
-            #                 if (
-            #                         hasattr(winding, "nominal_voltage")
-            #                         and winding.nominal_voltage is not None
-            #                 ):
-            #                     txt = "{kv}".format(
-            #                         kv=round(winding.nominal_voltage * 10 ** -3, 3)
-            #                     )  # OpenDSS in kvolts
-            #
-            #             fp.write("\nSetkVBase Bus={txt1} kVLL={txt2}\n".format(txt1=bus2, txt2=txt))
-
-###################################################################################################################
 
             if (
                 self.output_filenames["buses"] in self.files_to_redirect
@@ -4164,7 +3934,7 @@ class Writer(AbstractWriter):
                     fp.write("bus1={name} pu={pu}".format(name=i.name, pu=i.setpoint))
                     if hasattr(i, "nominal_voltage") and i.nominal_voltage is not None:
                         fp.write(
-                            " basekV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3, 4))
+                            " basekV={volt}".format(volt=i.nominal_voltage * 10 ** -3)
                         )  # DiTTo in volts
                     fp.write(
                         " R1={R1} X1={X1}".format(R1=0.00001, X1=0.00001)
