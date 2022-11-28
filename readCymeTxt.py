@@ -25,7 +25,7 @@ def main():
     # Change this if you wish to use another system
     path = '../Data/BGE/Two-feeder/two_feeders'
     #path = '../Data/BGE/ANL_Cyme_Data_(BGE_Network)/Cyme'
-
+    #path = '../Data/BGE/selected_10_feeders/cyme'
 
     ############################
     #  STEP 1: READ FROM CYME  #
@@ -64,6 +64,7 @@ def main():
                 continue
             # Instanciate a Writer object
             w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
+            #w = Writer(output_path='../Data/BGE/selected_10_feeders/Feeder_' + feedername + "/")
             #w = Writer(output_path='../Data/BGE/BGE_whole_network/Substation_'+substation +'/Feeder_'+feedername+"/")
 
             w.write(model)
