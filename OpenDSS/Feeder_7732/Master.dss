@@ -1,0 +1,19 @@
+Clear
+
+New Circuit.Full_Network bus1=SOURCE_7732 pu=1.0 basekV=13.8 R1=0.052942 X1=0.712436 R0=0.083756 X0=0.723558
+
+Redirect LineCodes.dss
+Redirect Lines.dss
+Redirect Transformers.dss
+Redirect Loads.dss
+Redirect Capacitors.dss
+
+New energymeter.M1 element=Transformer.Sub terminal=1
+
+Set Voltagebases=[0.208, 0.24, 0.3603, 0.4157, 0.416, 0.48, 13.2, 13.8]
+
+Calcvoltagebases
+
+Buscoords Buscoords.dss
+
+Solve
