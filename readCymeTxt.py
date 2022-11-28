@@ -23,8 +23,9 @@ def main():
 
     # Path settings (assuming it is run from examples folder)
     # Change this if you wish to use another system
-    path = '../Data/BGE/Two-feeder/two_feeders'
+    # path = '../Data/BGE/Two-feeder/two_feeders'
     #path = '../Data/BGE/ANL_Cyme_Data_(BGE_Network)/Cyme'
+    path = 'C:/Users/ainaolaji/Documents/two_feeders/DistFileConv/Cyme'
 
 
     ############################
@@ -63,7 +64,8 @@ def main():
             if model.network_type == "substation":
                 continue
             # Instanciate a Writer object
-            w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
+            w = Writer(output_path='C:/Users/ainaolaji/Documents/two_feeders/DistFileConv/OpenDSS/Feeder_' + feedername + "/")
+            # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
             #w = Writer(output_path='../Data/BGE/BGE_whole_network/Substation_'+substation +'/Feeder_'+feedername+"/")
 
             w.write(model)
