@@ -1005,6 +1005,7 @@ class Writer(AbstractWriter):
                                 name=obj.connecting_element, volt=round(obj.nominal_voltage * 10 ** -3, 4))
                             txt += "wdg=2 conn=wye kv={volt} kva=50 %R=(.5 1000 /) bus={name}-1 XHL=(8 1000 /)".format(
                                 volt=max(pri_volt_list), name=obj.connecting_element)
+                            txt += "\n\n"
 
                             feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
 
@@ -2249,6 +2250,8 @@ class Writer(AbstractWriter):
                             and hasattr(i, "to_element")
                             and i.to_element is not None
                         ):
+                            i.from_element = i.from_element.replace(".", "_")  # Adedoyin
+                            i.to_element = i.to_element.replace(".", "_")  # Adedoyin
                             transfo_creation_string += " buses=({b1}.{p},{b2}.{p})".format(
                                 b1=i.from_element, b2=i.to_element, p=phase_string
                             )
@@ -3080,7 +3083,7 @@ class Writer(AbstractWriter):
                                         if substation_name + "_" + feeder_name in feeder_text_map:
                                             txt_new = feeder_text_map[substation_name + "_" + feeder_name]
 
-                                        txt_new = txt[:idx2] + '' + txt[idx3 + 1:]
+                                        txt_new = txt[:idx2] + txt[idx3 + 1:]
 
                                         # else:
                                         #     logger.warning(
@@ -3973,6 +3976,8 @@ class Writer(AbstractWriter):
                         and obj.positive_sequence_impedance is not None
                     ):
                         R1 = obj.positive_sequence_impedance.real
+                        if R1 == 0.0: #Adedoyin
+                            R1 = 0.0001
                         X1 = obj.positive_sequence_impedance.imag
                         fp.write(
                             " R1={R1} X1={X1}".format(
@@ -3985,6 +3990,8 @@ class Writer(AbstractWriter):
                         and obj.zero_sequence_impedance is not None
                     ):
                         R0 = obj.zero_sequence_impedance.real
+                        if R0 == 0.0: #Adedoyin
+                            R0 = 0.0001
                         X0 = obj.zero_sequence_impedance.imag
                         fp.write(
                             " R0={R0} X0={X0}".format(
