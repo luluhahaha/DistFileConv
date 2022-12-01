@@ -5810,7 +5810,7 @@ class Reader(AbstractReader):
                 # Lusha
                 if api_regulator.from_element not in self.node_feeder_mapping.keys():
                     self.node_feeder_mapping[api_regulator.from_element] = []
-                if api_regulator.from_element not in self.node_feeder_mapping.keys():
+                if api_regulator.to_element not in self.node_feeder_mapping.keys():
                     self.node_feeder_mapping[api_regulator.to_element] = []
                 if api_regulator.feeder_name not in self.node_feeder_mapping[api_regulator.from_element]:
                     self.node_feeder_mapping[api_regulator.from_element].append(api_regulator.feeder_name)
@@ -7176,13 +7176,16 @@ class Reader(AbstractReader):
                 if isinstance(element,Capacitor):
                     capacitors.append(element)
 
-            connectors = [regulators,transformers,lines]
+            # Lusha
+            #connectors = [regulators,transformers,lines]
+            connectors = [transformers, lines]
             non_connectors = [loads,bess,pvs,capacitors]
 
             if from_element is None or to_element is None: # i.e. just loads, pvs and caps so no problem
                 continue
 
             original_from_element = from_element
+
 
             # Lusha
             if original_from_element not in model.model_names.keys():
