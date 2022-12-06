@@ -983,6 +983,8 @@ class Writer(AbstractWriter):
 
                 feeder_text_map[substation_name + "_" + feeder_name] = txt
 ###############Adedoyin#################
+
+
         for obj in model.models:
             if (
                     isinstance(obj, PowerSource) and obj.is_sourcebus == 1
@@ -1001,27 +1003,35 @@ class Writer(AbstractWriter):
                                 hasattr(obj, "connecting_element")
                                 and obj.connecting_element is not None
                         ):
-                            txt = "New Transformer.Sub phases=3 windings=2 wdg=1 conn=delta kv={volt} kva=50.0 %R=(.5 1000 /) bus={name} ".format(
-                                name=obj.connecting_element, volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                            txt += "wdg=2 conn=wye kv={volt} kva=50 %R=(.5 1000 /) bus={name}-1 XHL=(8 1000 /)".format(
-                                volt=max(pri_volt_list), name=obj.connecting_element)
-                            txt += "\n\n"
+                            for i in model.models:
+                                if isinstance(i, Line):
 
-                            feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
+                                    if hasattr(i, "from_element") and i.from_element is not None:
+                                        i.from_element = i.from_element.replace(".", "_")
+                                        if i.from_element == obj.connecting_element:
+                                            if hasattr(i, "from_element") and i.from_element is not None:
+                                                i.to_element = i.to_element.replace(".", "_")
+                                                txt = "New Transformer.Sub phases=3 windings=2 wdg=1 conn=delta kv={volt} kva=50.0 %R=(.5 1000 /) bus={name} ".format(
+                                                    name=obj.connecting_element, volt=round(obj.nominal_voltage * 10 ** -3, 4))
+                                                txt += "wdg=2 conn=wye kv={volt} kva=50 %R=(.5 1000 /) bus={name} XHL=(8 1000 /)".format(
+                                                    volt=max(pri_volt_list), name=i.to_element)
+                                                txt += "\n\n"
 
-                        else:
-                            logger.warning(
-                                "No valid name for connecting element of source {}. Using name of the source instead...".format(
-                                    cleaned_name
-                                )
-                            )
-                            txt = "New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
-                                name=obj.connecting_element)
-                            txt += "conn=delta kv={volt} ".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                            txt += "kva=50 %r=(.5 1000 /) wdg=2 bus={name}-1 conn=wye kv={volt} kva=50 %r=(.5 1000 /)".format(
-                                volt=max(pri_volt_list), name=obj.connecting_element)
+                                                feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
 
-                            feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
+                                            else:
+                                                logger.warning(
+                                                    "No valid name for connecting element of source {}. Using name of the source instead...".format(
+                                                        cleaned_name
+                                                    )
+                                                )
+                                                txt = "New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
+                                                    name=obj.connecting_element)
+                                                txt += "conn=delta kv={volt} ".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
+                                                txt += "kva=50 %r=(.5 1000 /) wdg=2 bus={name} conn=wye kv={volt} kva=50 %r=(.5 1000 /)".format(
+                                                    volt=max(pri_volt_list), name=i.to_element)
+
+                                                feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
                             ###############Adedoyin#################
 
 
@@ -1886,10 +1896,11 @@ class Writer(AbstractWriter):
 
                 # Connection type
                 if hasattr(i, "connection_type") and i.connection_type is not None:
-                    if i.connection_type == "Y":
-                        txt += " conn=wye"
-                    elif i.connection_type == "D":
-                        txt += " conn=delta"
+                    txt += " conn=wye"
+                    # if i.connection_type == "Y":
+                    #     txt += " conn=wye"
+                    # elif i.connection_type == "D":
+                    #     txt += " conn=delta"
 
                 # Connecting element
                 if (
@@ -1959,14 +1970,19 @@ class Writer(AbstractWriter):
                             i.nominal_voltage * 10 ** -3
                         )
 
+                # # Vmin
+                # if hasattr(i, "vmin") and i.vmin is not None:
+                #     txt += " Vminpu={vmin}".format(vmin=i.vmin)
+                #
+                # # Vmax
+                # if hasattr(i, "vmax") and i.vmax is not None:
+                #     txt += " Vmaxpu={vmax}".format(vmax=i.vmax)
                 # Vmin
-                if hasattr(i, "vmin") and i.vmin is not None:
-                    txt += " Vminpu={vmin}".format(vmin=i.vmin)
-
-                # Vmax
-                if hasattr(i, "vmax") and i.vmax is not None:
-                    txt += " Vmaxpu={vmax}".format(vmax=i.vmax)
-
+                #Adedoyin
+                # txt += " Vminpu=0.8"
+                #
+                # # Vmax
+                # txt += " Vmaxpu=1.1"
                 # positions (Not mapped)
 
                 # KW
@@ -2932,6 +2948,7 @@ class Writer(AbstractWriter):
                 # TODO: Let the user specify the export units
                 txt += " Units=km"
 
+
                 # Length
                 if hasattr(i, "length") and i.length is not None:
                     txt += " Length={length}".format(
@@ -2988,11 +3005,11 @@ class Writer(AbstractWriter):
                             and wire.phase not in ["N", "N1", "N2"]
                         ]
                     )
-                    if len(closed_phase) == 0:
-                        txt += " enabled=n"
-                    else:
-                        txt += " enabled=y"
-
+                    # if len(closed_phase) == 0:
+                    #     txt += " enabled=n"
+                    # else:
+                    #     txt += " enabled=y"
+                    txt += " enabled=y" #close all switches #Adedoyin
                 # is_fuse
                 if hasattr(i, "is_fuse") and i.is_fuse == 1:
                     fuse_line = "New Fuse.Fuse_{name} monitoredobj=Line.{name} enabled=y".format(
@@ -3029,79 +3046,62 @@ class Writer(AbstractWriter):
                 if fuse_line != "":
                     txt += fuse_line
                     txt += "\n\n"
+                feeder_text_map[substation_name + "_" + feeder_name] = txt
 
 #Adedoyin begin
-                for i in model.models:
-                    # If we get a transformer object...
-                    if isinstance(i, PowerTransformer):
-                        if hasattr(i, "windings") and i.windings is not None:
-                            if len(i.windings) == 2:
-                                for cnt, winding in enumerate(i.windings):
-                                    if (
-                                            hasattr(winding, "nominal_voltage")
-                                            and winding.nominal_voltage is not None
-                                    ):
-                                        if (
-                                                not substation_name + "_" + feeder_name
-                                                    in self._baseKV_feeders_
-                                        ):
-                                            self._baseKV_feeders_[
-                                                substation_name + "_" + feeder_name
-                                                ] = set()
-                                        self._baseKV_.add(
-                                            winding.nominal_voltage * 10 ** -3
-                                        )
-                                        self._baseKV_feeders_[
-                                            substation_name + "_" + feeder_name
-                                            ].add(winding.nominal_voltage * 10 ** -3)
-                                    pri_volt_list.append(round(winding.nominal_voltage * 10 ** -3, 4))
-
-
-                for obj in model.models:
-                        if (
-                                isinstance(obj, PowerSource) and obj.is_sourcebus == 1
-                        ):
+        for i in model.models:
+            # If we get a transformer object...
+            if isinstance(i, PowerTransformer):
+                if hasattr(i, "windings") and i.windings is not None:
+                    if len(i.windings) == 2:
+                        for cnt, winding in enumerate(i.windings):
                             if (
-                                    hasattr(obj, "nominal_voltage")
-                                    and obj.nominal_voltage is not None
+                                    hasattr(winding, "nominal_voltage")
+                                    and winding.nominal_voltage is not None
                             ):
-                                if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
-                                    # For RNM datasets only one source exists.
-                                    if "_src" in obj.name:
-                                        cleaned_name = obj.name[:-4]
-                                    else:
-                                        cleaned_name = obj.name
-                                    if (
-                                            hasattr(obj, "connecting_element")
-                                            and obj.connecting_element is not None
-                                    ):
-                                        idx1 = txt.find('bus1={name}.1.2.3'.format(name=obj.connecting_element))
-                                        idx2 = txt.find('New Line', idx1-50)
-                                        idx3 = txt.find('\n\n', idx2+2)
+                                if (
+                                        not substation_name + "_" + feeder_name
+                                            in self._baseKV_feeders_
+                                ):
+                                    self._baseKV_feeders_[
+                                        substation_name + "_" + feeder_name
+                                        ] = set()
+                                self._baseKV_.add(
+                                    winding.nominal_voltage * 10 ** -3
+                                )
+                                self._baseKV_feeders_[
+                                    substation_name + "_" + feeder_name
+                                    ].add(winding.nominal_voltage * 10 ** -3)
+                            pri_volt_list.append(round(winding.nominal_voltage * 10 ** -3, 4))
 
-                                        txt_new = ""
-                                        if substation_name + "_" + feeder_name in feeder_text_map:
-                                            txt_new = feeder_text_map[substation_name + "_" + feeder_name]
 
-                                        txt_new = txt[:idx2] + txt[idx3 + 1:]
+        for obj in model.models:
+                if (
+                        isinstance(obj, PowerSource) and obj.is_sourcebus == 1
+                ):
+                    if (
+                            hasattr(obj, "nominal_voltage")
+                            and obj.nominal_voltage is not None
+                    ):
+                        if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
 
-                                        # else:
-                                        #     logger.warning(
-                                        #         "No valid name for connecting element of source {}. Using name of the source instead...".format(
-                                        #             cleaned_name
-                                        #         )
-                                        #     )
-                                        # txt = "New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
-                                        #     name=obj.connecting_element)
-                                        # txt += "conn=delta kv={volt} ".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                                        # txt += "kva=50 %r=(.5 1000 /) wdg=2 bus={name}-1 conn=wye kv={volt} kva=50 %r=(.5 1000 /)".format(
-                                        #     volt=max(pri_volt_list), name=obj.connecting_element)
-                                        feeder_text_map[substation_name + "_" + feeder_name] = txt
-        # Adedoyin end
+                            if (
+                                    hasattr(obj, "connecting_element")
+                                    and obj.connecting_element is not None
+                            ):
+                                sourcebus = obj.connecting_element
+
+# Adedoyin end
 
         for substation_name in substation_text_map:
             for feeder_name in substation_text_map[substation_name]:
                 txt = feeder_text_map[substation_name + "_" + feeder_name]
+                # Adedoyin begin
+                idx1 = txt.find('bus1={name}.1.2.3'.format(name=sourcebus))
+                idx2 = txt.find('New Line', idx1 - 50)
+                idx3 = txt.find('\n\n', idx1 + 2)
+                txt = txt[:idx2] + txt[idx3 + 2:]
+                # Adedoyin end
                 feeder_name = feeder_name.replace(">", "-")
                 substation_name = substation_name.replace(">", "-")
                 if txt != "":
@@ -3976,9 +3976,11 @@ class Writer(AbstractWriter):
                         and obj.positive_sequence_impedance is not None
                     ):
                         R1 = obj.positive_sequence_impedance.real
-                        if R1 == 0.0: #Adedoyin
-                            R1 = 0.0001
+                        R1 = 0
+                        # if R1 == 0.0: #Adedoyin
+                        #     R1 = 0.0001
                         X1 = obj.positive_sequence_impedance.imag
+                        X1 = 0.0001
                         fp.write(
                             " R1={R1} X1={X1}".format(
                                 R1=self.float_to_str(R1), X1=self.float_to_str(X1)
@@ -3990,9 +3992,11 @@ class Writer(AbstractWriter):
                         and obj.zero_sequence_impedance is not None
                     ):
                         R0 = obj.zero_sequence_impedance.real
-                        if R0 == 0.0: #Adedoyin
-                            R0 = 0.0001
+                        R0 = 0
+                        # if R0 == 0.0: #Adedoyin
+                        #     R0 = 0.0001
                         X0 = obj.zero_sequence_impedance.imag
+                        X0 = 0.0001
                         fp.write(
                             " R0={R0} X0={X0}".format(
                                 R0=self.float_to_str(R0), X0=self.float_to_str(X0)
