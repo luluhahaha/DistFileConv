@@ -28,6 +28,7 @@ def main():
 
     path = '../Data/BGE/selected_10_feeders/cyme'
     # path = '../Data/BGE/Two-feeder/two_feeders'
+    # path = '../Data/BGE/PHI/cyme'
 
 
 
@@ -69,6 +70,7 @@ def main():
             # Instanciate a Writer object
             # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
             w = Writer(output_path='../Data/BGE/selected_10_feeders/Feeder_' + feedername + "/")
+            # w = Writer(output_path='../Data/BGE/PHI/Feeder_' + feedername + "/")
             # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
             #w = Writer(output_path='../Data/BGE/BGE_whole_network/Substation_'+substation +'/Feeder_'+feedername+"/")
 
