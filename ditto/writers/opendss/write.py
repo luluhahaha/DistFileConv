@@ -1011,9 +1011,9 @@ class Writer(AbstractWriter):
                                         if i.from_element == obj.connecting_element:
                                             if hasattr(i, "from_element") and i.from_element is not None:
                                                 i.to_element = i.to_element.replace(".", "_")
-                                                txt = "New Transformer.Sub phases=3 windings=2 wdg=1 conn=delta kv={volt} kva=50.0 %R=(.5 1000 /) bus={name} ".format(
+                                                txt = "New Transformer.Sub phases=3 windings=2 wdg=1 conn=delta kv={volt} kva=50000.0 %R=(.5 1000 /) bus={name} ".format(
                                                     name=obj.connecting_element, volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                                                txt += "wdg=2 conn=wye kv={volt} kva=50 %R=(.5 1000 /) bus={name} XHL=(8 1000 /)".format(
+                                                txt += "wdg=2 conn=wye kv={volt} kva=50000 %R=(.5 1000 /) bus={name} XHL=(8 1000 /)".format(
                                                     volt=max(pri_volt_list), name=i.to_element)
                                                 txt += "\n\n"
 
@@ -1028,7 +1028,7 @@ class Writer(AbstractWriter):
                                                 txt = "New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
                                                     name=obj.connecting_element)
                                                 txt += "conn=delta kv={volt} ".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                                                txt += "kva=50 %r=(.5 1000 /) wdg=2 bus={name} conn=wye kv={volt} kva=50 %r=(.5 1000 /)".format(
+                                                txt += "kva=50000 %r=(.5 1000 /) wdg=2 bus={name} conn=wye kv={volt} kva=50000 %r=(.5 1000 /)".format(
                                                     volt=max(pri_volt_list), name=i.to_element)
 
                                                 feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
@@ -2953,7 +2953,7 @@ class Writer(AbstractWriter):
                 if hasattr(i, "length") and i.length is not None:
                     txt += " Length={length}".format(
                         length=max(
-                            0.001, self.convert_from_meters(np.real(i.length), u"km")
+                            0.001, self.convert_from_meters(np.real(i.length)/12, u"km")
                         )
                     )
 
@@ -3098,7 +3098,7 @@ class Writer(AbstractWriter):
                 txt = feeder_text_map[substation_name + "_" + feeder_name]
                 # Adedoyin begin
                 idx1 = txt.find('bus1={name}.1.2.3'.format(name=sourcebus))
-                idx2 = txt.find('New Line', idx1 - 50)
+                idx2 = txt.find('New Line', idx1 - 70)
                 idx3 = txt.find('\n\n', idx1 + 2)
                 txt = txt[:idx2] + txt[idx3 + 2:]
                 # Adedoyin end
