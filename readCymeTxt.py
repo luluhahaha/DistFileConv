@@ -23,10 +23,12 @@ def main():
 
     # Path settings (assuming it is run from examples folder)
     # Change this if you wish to use another system
+    cwd = os.getcwd()
+
 
     #path = '../Data/BGE/ANL_Cyme_Data_(BGE_Network)/Cyme'
 
-    path = '../Data/BGE/selected_10_feeders/cyme'
+    path = cwd + '/Data/BGE/selected_10_feeders/cyme'
     # path = '../Data/BGE/Two-feeder/two_feeders'
     # path = '../Data/BGE/PHI/cyme'
 
@@ -69,7 +71,7 @@ def main():
                 continue
             # Instanciate a Writer object
             # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
-            w = Writer(output_path='../Data/BGE/selected_10_feeders/Feeder_' + feedername + "/")
+            w = Writer(output_path=cwd + '/Data/BGE/selected_10_feeders/Feeder_' + feedername + "/")
             # w = Writer(output_path='../Data/BGE/PHI/Feeder_' + feedername + "/")
             # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
             #w = Writer(output_path='../Data/BGE/BGE_whole_network/Substation_'+substation +'/Feeder_'+feedername+"/")
