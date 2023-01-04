@@ -28,9 +28,9 @@ def main():
 
     #path = '../Data/BGE/ANL_Cyme_Data_(BGE_Network)/Cyme'
 
-    path = cwd + '/Data/BGE/selected_10_feeders/cyme'
+    # path = cwd + '/Data/BGE/selected_10_feeders/cyme'
     # path = '../Data/BGE/Two-feeder/two_feeders'
-    # path = '../Data/BGE/PHI/cyme'
+    path = cwd + '/Data/PHI/cyme'
 
 
 
@@ -71,8 +71,8 @@ def main():
                 continue
             # Instanciate a Writer object
             # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
-            w = Writer(output_path=cwd + '/Data/BGE/selected_10_feeders/Feeder_' + feedername + "/")
-            # w = Writer(output_path='../Data/BGE/PHI/Feeder_' + feedername + "/")
+            # w = Writer(output_path=cwd + '/Data/BGE/selected_10_feeders/Feeder_' + feedername + "/")
+            w = Writer(output_path= cwd +'/Data/PHI/Feeder_' + feedername + "/")
             # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
             #w = Writer(output_path='../Data/BGE/BGE_whole_network/Substation_'+substation +'/Feeder_'+feedername+"/")
 
