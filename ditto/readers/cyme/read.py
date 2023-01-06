@@ -1213,6 +1213,11 @@ class Reader(AbstractReader):
             subname = headnode["structureid"].strip().lower()
             feedername = headnode["networkid"].strip().lower()
 
+            # Lusha
+            # if no subname exist, set it the same as feedername
+            if subname == "":
+                subname = "Sub_"+feedername
+
             # initiate source_flag before parse_source
             # if subname not in self.sub_source_flag.keys():
             #     self.sub_source_flag[subname] = 0
@@ -1438,6 +1443,8 @@ class Reader(AbstractReader):
 
             if sid in subs:
                 # Lusha
+                if sdata["nodeid"] not in self.headnode_sub_mapping.keys():
+                    continue
                 subname = self.headnode_sub_mapping[sdata["nodeid"]]
                 feeders = self.sub_feeder_mapping[subname]
 
@@ -3671,6 +3678,7 @@ class Reader(AbstractReader):
                     line_data = self.concentric_neutral_cable[settings["devicenumber"]]
                     line_data["type"] = "balanced_line"
                 # Lusha
+                # remove this part to solve no GMR issue
                 # elif (
                 #     "condid_a" in settings
                 #     and "condid_b" in settings
