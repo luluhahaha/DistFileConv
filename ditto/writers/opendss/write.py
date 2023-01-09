@@ -993,6 +993,11 @@ class Writer(AbstractWriter):
                         hasattr(obj, "nominal_voltage")
                         and obj.nominal_voltage is not None
                 ):
+                    # Lusha
+                    if len(pri_volt_list) == 0:
+                        continue
+
+                    # Adedoyin
                     if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
                         # For RNM datasets only one source exists.
                         if "_src" in obj.name:
@@ -3083,7 +3088,9 @@ class Writer(AbstractWriter):
                             hasattr(obj, "nominal_voltage")
                             and obj.nominal_voltage is not None
                     ):
-                        if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
+                        # Lusha
+                        # Adedoyin
+                        #if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
 
                             if (
                                     hasattr(obj, "connecting_element")
