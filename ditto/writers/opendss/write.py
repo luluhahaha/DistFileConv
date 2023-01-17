@@ -427,6 +427,21 @@ class Writer(AbstractWriter):
         substation_text_map = {}
         feeder_text_map = {}
         pri_volt_list = []
+
+        # Lusha
+        # initiation incase there is no original transformer
+        feeder_name = "DEFAULT"
+        substation_name = "DEFAULT"
+        if not substation_name in substation_text_map:
+            substation_text_map[substation_name] = set([feeder_name])
+        else:
+            substation_text_map[substation_name].add(feeder_name)
+        txt = ""
+        if substation_name + "_" + feeder_name in feeder_text_map:
+            txt = feeder_text_map[substation_name + "_" + feeder_name]
+        else:
+            feeder_text_map[substation_name + "_" + feeder_name] = ""
+
         # Loop over the DiTTo objects
         for i in model.models:
             # If we get a transformer object...
@@ -994,50 +1009,53 @@ class Writer(AbstractWriter):
                         and obj.nominal_voltage is not None
                 ):
                     # Lusha
+                    # incase there is no transformers, set the source voltage in pri_volt_list
                     if len(pri_volt_list) == 0:
-                        continue
+                        pri_volt_list.append(round(obj.nominal_voltage * 10 ** -3, 4))
 
                     # Adedoyin
-                    if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
+                    #if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
+
                         # For RNM datasets only one source exists.
-                        if "_src" in obj.name:
-                            cleaned_name = obj.name[:-4]
-                        else:
-                            cleaned_name = obj.name
-                        if (
-                                hasattr(obj, "connecting_element")
-                                and obj.connecting_element is not None
-                        ):
-                            for i in model.models:
-                                if isinstance(i, Line):
+                    # add transformer after source, either with same voltage levels, or change voltage levels
+                    if "_src" in obj.name:
+                        cleaned_name = obj.name[:-4]
+                    else:
+                        cleaned_name = obj.name
+                    if (
+                            hasattr(obj, "connecting_element")
+                            and obj.connecting_element is not None
+                    ):
+                        for i in model.models:
+                            if isinstance(i, Line):
 
-                                    if hasattr(i, "from_element") and i.from_element is not None:
-                                        i.from_element = i.from_element.replace(".", "_")
-                                        if i.from_element == obj.connecting_element:
-                                            if hasattr(i, "from_element") and i.from_element is not None:
-                                                i.to_element = i.to_element.replace(".", "_")
-                                                txt = "New Transformer.Sub phases=3 windings=2 wdg=1 conn=delta kv={volt} kva=50000.0 %R=(.5 1000 /) bus={name} ".format(
-                                                    name=obj.connecting_element, volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                                                txt += "wdg=2 conn=wye kv={volt} kva=50000 %R=(.5 1000 /) bus={name} XHL=(8 1000 /)".format(
-                                                    volt=max(pri_volt_list), name=i.to_element)
-                                                txt += "\n\n"
+                                if hasattr(i, "from_element") and i.from_element is not None:
+                                    i.from_element = i.from_element.replace(".", "_")
+                                    if i.from_element == obj.connecting_element:
+                                        if hasattr(i, "from_element") and i.from_element is not None:
+                                            i.to_element = i.to_element.replace(".", "_")
+                                            txt = "New Transformer.Sub phases=3 windings=2 wdg=1 conn=delta kv={volt} kva=50000.0 %R=(.5 1000 /) bus={name} ".format(
+                                                name=obj.connecting_element, volt=round(obj.nominal_voltage * 10 ** -3, 4))
+                                            txt += "wdg=2 conn=wye kv={volt} kva=50000 %R=(.5 1000 /) bus={name} XHL=(8 1000 /)".format(
+                                                volt=max(pri_volt_list), name=i.to_element)
+                                            txt += "\n\n"
 
-                                                feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
+                                            feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
 
-                                            else:
-                                                logger.warning(
-                                                    "No valid name for connecting element of source {}. Using name of the source instead...".format(
-                                                        cleaned_name
-                                                    )
+                                        else:
+                                            logger.warning(
+                                                "No valid name for connecting element of source {}. Using name of the source instead...".format(
+                                                    cleaned_name
                                                 )
-                                                txt = "New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
-                                                    name=obj.connecting_element)
-                                                txt += "conn=delta kv={volt} ".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                                                txt += "kva=50000 %r=(.5 1000 /) wdg=2 bus={name} conn=wye kv={volt} kva=50000 %r=(.5 1000 /)".format(
-                                                    volt=max(pri_volt_list), name=i.to_element)
+                                            )
+                                            txt = "New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
+                                                name=obj.connecting_element)
+                                            txt += "conn=delta kv={volt} ".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
+                                            txt += "kva=50000 %r=(.5 1000 /) wdg=2 bus={name} conn=wye kv={volt} kva=50000 %r=(.5 1000 /)".format(
+                                                volt=max(pri_volt_list), name=i.to_element)
 
-                                                feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
-                            ###############Adedoyin#################
+                                            feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
+                        ###############Adedoyin#################
 
 
         for substation_name in substation_text_map:
@@ -3089,17 +3107,19 @@ class Writer(AbstractWriter):
                             and obj.nominal_voltage is not None
                     ):
                         # Lusha
+                        if len(pri_volt_list)== 0:
+                            pri_volt_list.append(round(obj.nominal_voltage * 10 ** -3, 4))
+
                         # Adedoyin
                         #if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
 
-                            if (
-                                    hasattr(obj, "connecting_element")
-                                    and obj.connecting_element is not None
-                            ):
-                                sourcebus = obj.connecting_element
+                        if (
+                                hasattr(obj, "connecting_element")
+                                and obj.connecting_element is not None
+                        ):
+                            sourcebus = obj.connecting_element
 
 # Adedoyin end
-
         for substation_name in substation_text_map:
             for feeder_name in substation_text_map[substation_name]:
                 txt = feeder_text_map[substation_name + "_" + feeder_name]

@@ -1248,7 +1248,9 @@ class Reader(AbstractReader):
         # Open the network file
         self.get_file_content("network")
 
-        mapp = {"sourceid": 0, "nodeid": 2, "networkid": 3, "desiredvoltage": 4}
+        #mapp = {"sourceid": 0, "nodeid": 2, "networkid": 3, "desiredvoltage": 4}
+        # Lusha
+        mapp = {"sourceid": 0, "nodeid": 2, "networkid": 3, "operatingvoltagea": 4}
         mapp_source_equivalent = {
             "nodeid": 0,
             "voltage": 1,
@@ -1260,6 +1262,11 @@ class Reader(AbstractReader):
             "zerosequenceresistance": 7,
             "zerosequencereactance": 8,
             "configuration": 9,
+            #Lusha
+            "operatingvoltage1":10,
+            "operatingvoltage2": 11,
+            "operatingvoltage3": 12,
+
         }
         mapp_sub = {"id": 0, "mva": 1, "kvll": 6, "conn": 14}
 
@@ -1272,7 +1279,10 @@ class Reader(AbstractReader):
                 self.parser_helper(
                     line,
                     ["source"],
-                    ["sourceid", "nodeid", "networkid", "desiredvoltage"],
+                    # ["sourceid", "nodeid", "networkid", "desiredvoltage"],
+                    # Lusha
+                    # parse OperatingVoltageA
+                    ["sourceid", "nodeid", "networkid", "operatingvoltagea"],
                     mapp,
                 )
             )
@@ -1297,7 +1307,11 @@ class Reader(AbstractReader):
                         "firstlevelr1",
                         "firstlevelx1",
                         "firstlevelr0",
-                        "firstlevelx0"
+                        "firstlevelx0",
+                        # Lusha
+                        "operatingvoltage1",
+                        "operatingvoltage2",
+                        "operatingvoltage3"
                     ],
                     mapp_source_equivalent,
                 )
@@ -1317,6 +1331,7 @@ class Reader(AbstractReader):
 
             if source_equivalent_data["loadmodelname"].lower() != "default":
                 # Lusha
+                # if no loadmodelname, then it is default
                 if source_equivalent_data["loadmodelname"].lower() != '':
                     continue  # Want to only use the default source equivalent configuration
 
@@ -1369,9 +1384,15 @@ class Reader(AbstractReader):
                 api_source.name = headnode + "_src"
 
                 try:
-                    api_source.nominal_voltage = (
-                        float(source_equivalent_data["voltage"]) * 10 ** 3
-                    )
+                    # Lusha
+                    if float(source_equivalent_data["voltage"]) != 0:
+                        api_source.nominal_voltage = (
+                            float(source_equivalent_data["voltage"]) * 10 ** 3
+                        )
+                    else:
+                        api_source.nominal_voltage = (
+                                float(source_equivalent_data["operatingvoltage1"]) * 10 ** 3
+                        )
                 except:
                     pass
 
@@ -1484,9 +1505,14 @@ class Reader(AbstractReader):
                     api_source.name = headnode + "_src"
 
                     try:
-                        if "desiredvoltage" in sdata:
+                        # Lusha
+                        # if "desiredvoltage" in sdata:
+                        #     api_source.nominal_voltage = (
+                        #         float(sdata["desiredvoltage"]) * 10 ** 3
+                        #     )
+                        if "operatingvoltagea" in sdata:
                             api_source.nominal_voltage = (
-                                float(sdata["desiredvoltage"]) * 10 ** 3
+                                float(sdata["operatingvoltagea"]) * 10 ** 3
                             )
                         else:
                             api_source.nominal_voltage = (
