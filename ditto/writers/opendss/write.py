@@ -3994,6 +3994,9 @@ class Writer(AbstractWriter):
                         hasattr(obj, "nominal_voltage")
                         and obj.nominal_voltage is not None
                     ):
+                        # Lusha
+                        # add source voltage to base voltage
+                        self._baseKV_.add(round(obj.nominal_voltage * 10 ** -3, 4))
                         fp.write(
                             " basekV={volt}".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
                         )  # DiTTo in volts
@@ -4085,7 +4088,9 @@ class Writer(AbstractWriter):
             _baseKV_list_round_ = []
             for i in _baseKV_list_:
                 temp = round(i, 4)
-                _baseKV_list_round_.append(temp)
+                # Lusha
+                if temp not in _baseKV_list_round_:
+                    _baseKV_list_round_.append(temp)
 
 
 ############################################## Adedoyin ##############################################
