@@ -4089,7 +4089,7 @@ class Writer(AbstractWriter):
             for i in _baseKV_list_:
                 temp = round(i, 4)
                 # Lusha
-                if temp not in _baseKV_list_round_:
+                if temp not in _baseKV_list_round_ and temp!=0:
                     _baseKV_list_round_.append(temp)
 
 
