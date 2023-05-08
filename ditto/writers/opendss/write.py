@@ -1959,9 +1959,6 @@ class Writer(AbstractWriter):
                                 )
 
 
-
-
-
                         if i.connection_type == "D" and len(i.phase_loads) == 1:
                             if self.phase_mapping(i.phase_loads[0].phase) == 1:
                                 txt += ".2"
@@ -2866,8 +2863,10 @@ class Writer(AbstractWriter):
         lines_to_geometrify = []
         lines_to_linecodify = []
         pri_volt_list = []
+        line_n = 0
         for i in model.models:
             if isinstance(i, Line):
+                line_n += 1
                 use_linecodes = False
 
                 # Find out if we have all the information we need to export
@@ -2927,6 +2926,8 @@ class Writer(AbstractWriter):
                     lines_to_linecodify.append(i)
                 else:
                     lines_to_geometrify.append(i)
+
+        print(line_n)
 
         self.write_wiredata(
             lines_to_geometrify
@@ -3996,7 +3997,7 @@ class Writer(AbstractWriter):
                     ):
                         # Lusha
                         # add source voltage to base voltage
-                        self._baseKV_.add(round(obj.nominal_voltage * 10 ** -3, 4))
+                        self._baseKV_.add(obj.nominal_voltage * 10 ** -3)
                         fp.write(
                             " basekV={volt}".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
                         )  # DiTTo in volts

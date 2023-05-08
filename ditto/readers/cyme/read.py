@@ -1115,12 +1115,17 @@ class Reader(AbstractReader):
         Since the reader was developed using the documentation for CYME v.8.0, give a warning if the version if different.
         The user is then responsible to check the differences betweeen the two versions.
         """
+        print("In parsing_header")
+
         cyme_version = None
         self.use_SI = None
 
         # Open any file. For example the network file
         self.get_file_content("network")
         for line in self.content:
+            # Lusha
+            if line.lower().startswith("[node"):
+                break
             if "cyme_version" in line.lower():
                 try:
                     cyme_version = line.split("=")[1].strip()
@@ -1179,6 +1184,7 @@ class Reader(AbstractReader):
             ].is_substation_connection = True
 
     def parse_head_nodes(self, model=None):
+        print("Inside parse_head_nodes")
         """ This parses the [HEADNODES] objects and is used to build Feeder_metadata DiTTo objects which define the feeder names and feeder headnodes"""
         # Open the network file
         self.get_file_content("network")
@@ -1244,6 +1250,7 @@ class Reader(AbstractReader):
 
 
     def parse_sources(self, model=None):
+        print("Inside parse_source")
         """Parse the sources."""
         # Open the network file
         self.get_file_content("network")
@@ -1337,7 +1344,7 @@ class Reader(AbstractReader):
 
             # Lusha
             # feeder headnode, usually in source equivalent
-            print(source_equivalent_data["nodeid"])
+            #print(source_equivalent_data["nodeid"])
             if source_equivalent_data["nodeid"] in self.headnode_feeder_mapping.keys():
                 feedername =self.headnode_feeder_mapping[source_equivalent_data["nodeid"]]
                 feeders =[feedername]
@@ -1945,6 +1952,7 @@ class Reader(AbstractReader):
         '''
 
     def parse_nodes(self, model=None):
+        print("Inside parse_nodes")
         """
         Parse the nodes from CYME to DiTTo.
 
@@ -2177,6 +2185,7 @@ class Reader(AbstractReader):
         return api_wire
 
     def parse_sections(self, model=None):
+        print("Inside parse_section")
         """
         This function is responsible for parsing the sections. It is expecting the following structure:
         ...
@@ -2229,6 +2238,8 @@ class Reader(AbstractReader):
         # Loop over the network file
         for line in self.content:
 
+
+
             # This will stop reading the file if we have already worked on the sections
             if job_is_done:
                 break
@@ -2239,6 +2250,10 @@ class Reader(AbstractReader):
                 job_is_done = True
 
                 line = next(self.content)
+
+                # # Lusha
+                # line = line.replace('\t', ',')
+
                 # Until we meet the next section header, work...
                 while len(line) > 2 and (
                     line[0] != "["
@@ -2580,7 +2595,7 @@ class Reader(AbstractReader):
 
         # Loop over the network file
         for line in self.content:
-
+            #print(line)
             #########################################
             #                                       #
             #      OVERHEAD UNBALANCED LINES        #
@@ -2791,7 +2806,7 @@ class Reader(AbstractReader):
 
         # Loop over the equipment file
         for line in self.content:
-
+            #print(line)
             #########################################
             #                                       #
             #                 LINES.                #
@@ -3037,10 +3052,16 @@ class Reader(AbstractReader):
         # At this point, we should have all the line data in multiple list of dictionaries.
         # We have then to put everything back together using the foreign keys
         #
+
+        # Lusha
+        missing_line = open('missing_line.txt','w')
+
+
         # Loop over the sections
         for sectionID, settings in self.settings.items():
 
             sectionID = sectionID.strip("*").lower()
+            #print(sectionID)
 
             # TODO: CLEAN THIS...
             if (
@@ -3688,11 +3709,18 @@ class Reader(AbstractReader):
                     logger.debug("cables {}".format(sectionID))
                     line_data = self.cables[settings["linecableid"]]
                     line_data["type"] = "balanced_line"
+                if line_data == None:
+                    print("linecableid:" + settings["linecableid"])
+                    print("WARNING:: Skipping Line {} !".format(sectionID))
+                    missing_line.write('Section ID:' + sectionID + ' Cable ID:'+settings["linecableid"]+'\n')
 
             # We might have a device number instead if we are dealing with BY PHASE settings
             #
             # TODO: Decide if I should remove this or not...
             #
+            # Lusha
+            elif 'condid_a' in settings:
+
             elif "devicenumber" in settings:
                 # if self.balanced_lines.has_key(settings['devicenumber']):
                 #       #Cache the line data
@@ -3713,10 +3741,16 @@ class Reader(AbstractReader):
                 # ):
                 #     if "condid_n" in settings or "condid_n1" in settings:
                 #         line_data = {"type": "unbalanced_spacing_conf"}
+                if line_data == None:
+                    print("Device number:" + settings["devicenumber"])
+                    print("WARNING:: Skipping Line {} !".format(sectionID))
+                    missing_line.write('Section ID:' + sectionID + ' Device Number:'+settings["devicenumber"]+'\n')
 
             if line_data is None:
                 if not "phase" in settings.keys():
                     logger.warning("WARNING:: Skipping Line {} !".format(sectionID))
+                # print("WARNING:: Skipping Line {} !".format(sectionID))
+                # missing_line.write('Section ID:' + sectionID  + '\n')
                 continue
             else:
                 impedance_matrix = None
@@ -4488,9 +4522,11 @@ class Reader(AbstractReader):
                 self.section_duplicates[sectionID] = []
             self.section_duplicates[sectionID].append(api_line)
 
+        missing_line.close()
         return 1
 
     def parse_capacitors(self, model=None):
+        print("Inside parse_capacitors")
         """Parse the capacitors from CYME to DiTTo."""
         # Instanciate the list in which we store the DiTTo capacitor objects
         self._capacitors = []
@@ -4830,6 +4866,7 @@ class Reader(AbstractReader):
         return 1
 
     def parse_transformers(self, model=None):
+        print("Inside parse_transformers")
         """Parse the transformers from CYME to DiTTo. Since substation transformer can have LTCs attached, when parsing a transformer, we may also create a regulator. LTCs are represented as regulators."""
         # Instanciate the list in which we store the DiTTo transformer objects
         self._transformers = []
@@ -5661,6 +5698,7 @@ class Reader(AbstractReader):
         return 1
 
     def parse_regulators(self, model=None):
+        print("Inside parse_regulators")
         """Parse the regulators from CYME to DiTTo.
 
         .. note::
@@ -6262,6 +6300,7 @@ class Reader(AbstractReader):
 
 
     def parse_loads(self, model=None):
+        print("Inside parse_loads")
         """Parse the loads from CYME to DiTTo."""
         # Instanciate the list in which we store the DiTTo load objects
         self._loads = {}
