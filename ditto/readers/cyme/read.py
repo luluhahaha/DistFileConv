@@ -3713,14 +3713,14 @@ class Reader(AbstractReader):
                     print("linecableid:" + settings["linecableid"])
                     print("WARNING:: Skipping Line {} !".format(sectionID))
                     missing_line.write('Section ID:' + sectionID + ' Cable ID:'+settings["linecableid"]+'\n')
+                    # Lusha
+                    # add cable information in equipment.txt: 1P1/0ACSR_13.8KV, 1P4/0CU_13.8KV, 3P#2ALP_4.33KV
+
 
             # We might have a device number instead if we are dealing with BY PHASE settings
             #
             # TODO: Decide if I should remove this or not...
             #
-            # Lusha
-            elif 'condid_a' in settings:
-
             elif "devicenumber" in settings:
                 # if self.balanced_lines.has_key(settings['devicenumber']):
                 #       #Cache the line data
@@ -3732,6 +3732,66 @@ class Reader(AbstractReader):
                     line_data = self.concentric_neutral_cable[settings["devicenumber"]]
                     line_data["type"] = "balanced_line"
                 # Lusha
+                # configuration for unblanced by phase overhead lines
+                if line_data is None:
+                    line_data = {}
+                    condID_a = settings["condid_a"]
+                    condID_b = settings["condid_b"]
+                    condID_c = settings["condid_c"]
+                    condID_n1 = settings["condid_n1"]
+                    condID_n2 = settings["condid_n2"]
+                    spacingid = settings["spacingid"]
+                    length = settings["length"]
+
+                    # ["id", "diameter", "gmr", "r25", "amps", "withstandrating"],
+                    if condID_a != "NONE":
+                        condID_a_diameter = self.conductors[condID_a]['diameter']
+                        condID_a_r25 = self.conductors[condID_a]['r25']
+                        condID_a_gmr = self.conductors[condID_a]['gmr']
+                        line_data['condid_a'] = condID_a
+                        line_data['ra'] = condID_a_r25
+                        line_data['xa'] = 0.12134*math.log10(float(condID_a_diameter)/float(condID_a_gmr))
+                    if condID_b != "NONE":
+                        condID_b_diameter = self.conductors[condID_b]['diameter']
+                        condID_b_r25 = self.conductors[condID_b]['r25']
+                        condID_b_gmr = self.conductors[condID_b]['gmr']
+                        line_data['condid_b'] = condID_b
+                        line_data['rb'] = condID_b_r25
+                        line_data['xb'] = 0.12134*math.log10(float(condID_b_diameter)/float(condID_b_gmr))
+                    if condID_c != "NONE":
+                        condID_c_diameter = self.conductors[condID_c]['diameter']
+                        condID_c_r25 = self.conductors[condID_c]['r25']
+                        condID_c_gmr = self.conductors[condID_c]['gmr']
+                        line_data['condid_c'] = condID_c
+                        line_data['rc'] = condID_c_r25
+                        line_data['xc'] = 0.12134*math.log10(float(condID_c_diameter)/float(condID_c_gmr))
+                    if condID_n1 != "NONE":
+                        condID_n1_diameter = self.conductors[condID_n1]['diameter']
+                        condID_n1_r25 = self.conductors[condID_n1]['r25']
+                        condID_n1_gmr = self.conductors[condID_n1]['gmr']
+                        line_data['condid_n1'] = condID_n1
+                    if condID_n2 != "NONE":
+                        condID_n2_diameter = self.conductors[condID_n2]['diameter']
+                        condID_n2_r25 = self.conductors[condID_n2]['r25']
+                        condID_n2_gmr = self.conductors[condID_n2]['gmr']
+                        line_data['condid_n2'] = condID_n2
+
+                    if condID_a != "NONE" and condID_b != "NONE":
+                        line_data["mutualresistanceab"] =0
+                        line_data["mutualreactanceab"] = 0
+                    if condID_b != "NONE" and condID_c != "NONE":
+                        line_data["mutualresistancebc"] =0
+                        line_data["mutualreactancebc"] = 0
+                    if condID_c != "NONE" and condID_a != "NONE":
+                        line_data["mutualresistanceca"] =0
+                        line_data["mutualreactanceca"] = 0
+
+                    line_data['id'] = settings["devicenumber"]
+                    line_data['spacingid'] = spacingid
+                    line_data['type'] = 'unbalanced_line'
+
+                # Lusha
+                # use ConductorID and spaceID to calculate
                 # remove this part to solve no GMR issue
                 # elif (
                 #     "condid_a" in settings
@@ -3745,6 +3805,7 @@ class Reader(AbstractReader):
                     print("Device number:" + settings["devicenumber"])
                     print("WARNING:: Skipping Line {} !".format(sectionID))
                     missing_line.write('Section ID:' + sectionID + ' Device Number:'+settings["devicenumber"]+'\n')
+
 
             if line_data is None:
                 if not "phase" in settings.keys():
