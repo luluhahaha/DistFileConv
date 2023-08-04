@@ -6506,7 +6506,7 @@ class Reader(AbstractReader):
             # Lusha
             # choose load model to use
             # 1 is default, 2 is summer, 3 is winter
-            if load_model_id == 1:
+            if load_model_id == 3:
 
                 if "connectedkva" in settings:
                     connectedkva = float(settings["connectedkva"])

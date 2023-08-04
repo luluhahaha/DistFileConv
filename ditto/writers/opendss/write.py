@@ -2387,17 +2387,19 @@ class Writer(AbstractWriter):
 
                         # kvas
                         if hasattr(i, "windings") and i.windings is not None:
-                            kvas = " kvas=("
-                            for w, winding in enumerate(i.windings):
-                                if (
-                                    hasattr(i.windings[w], "rated_power")
-                                    and i.windings[w].rated_power is not None
-                                ):
-                                    kvas += (
-                                        str(i.windings[w].rated_power * 10 ** -3) + ", "
-                                    )
-                            kvas = kvas[:-2]
-                            kvas += ")"
+                            kvas = " kvas=(5000,"
+                            # Lusha
+                            # increase regulator kva to avoid voltage drop
+                            # for w, winding in enumerate(i.windings):
+                            #     if (
+                            #         hasattr(i.windings[w], "rated_power")
+                            #         and i.windings[w].rated_power is not None
+                            #     ):
+                            #         kvas += (
+                            #             str(i.windings[w].rated_power * 10 ** -3) + ", "
+                            #         )
+                            # kvas = kvas[:-2]
+                            kvas += "5000)"
                             transfo_creation_string += kvas
 
                         # emergency_power
@@ -3070,26 +3072,29 @@ class Writer(AbstractWriter):
                     #     txt += " enabled=y"
                     txt += " enabled=y" #close all switches #Adedoyin
                 # is_fuse
-                if hasattr(i, "is_fuse") and i.is_fuse == 1:
-                    fuse_line = "New Fuse.Fuse_{name} monitoredobj=Line.{name} enabled=y".format(
-                        name=i.name
-                    )
-                    if hasattr(i, "wires") and i.wires is not None:
-                        currt_rating = -1
-                        all_current_ratings = [
-                            w.interrupting_rating
-                            for w in i.wires
-                            if w.interrupting_rating is not None
-                        ]
-                        if len(all_current_ratings) > 0:
-                            current_rating = max(all_current_ratings)
-                            if current_rating > 0:
-                                fuse_line += " ratedcurrent={curr}".format(
-                                    curr=current_rating
-                                )
+                # Lusha
+                # disable fuse
+                # if hasattr(i, "is_fuse") and i.is_fuse == 1:
+                #     fuse_line = "New Fuse.Fuse_{name} monitoredobj=Line.{name} enabled=y".format(
+                #         name=i.name
+                #     )
+                #     if hasattr(i, "wires") and i.wires is not None:
+                #         currt_rating = -1
+                #         all_current_ratings = [
+                #             w.interrupting_rating
+                #             for w in i.wires
+                #             if w.interrupting_rating is not None
+                #         ]
+                #         if len(all_current_ratings) > 0:
+                #             current_rating = max(all_current_ratings)
+                #             if current_rating > 0:
+                #                 fuse_line += " ratedcurrent={curr}".format(
+                #                     curr=current_rating
+                #                 )
 
-                else:
-                    fuse_line = ""
+                # else:
+                #     fuse_line = ""
+                fuse_line = ""
 
                 # N_phases
                 if hasattr(i, "wires") and i.wires is not None:
