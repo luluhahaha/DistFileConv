@@ -1953,8 +1953,14 @@ class Writer(AbstractWriter):
                                 txt += ".{p}".format(
                                     p=p
                                 )
-
-                        elif len(i.phase_loads) == 2:
+                        elif len(i.phase_loads) == 3:
+                            temp = [i.phase_loads[0].phase, i.phase_loads[1].phase, i.phase_loads[2].phase]
+                            for t in temp:
+                                p = self.phase_mapping(t)
+                                txt += ".{p}".format(
+                                    p=p
+                                )
+                        elif len(i.phase_loads) == 2 or len(i.phase_loads) == 1:
                             phase_load = i.phase_loads[0]
                         # for phase_load in i.phase_loads:
                             if (
@@ -1984,9 +1990,9 @@ class Writer(AbstractWriter):
                     # else:
                     # Lusha
                     # single phase load
-                    if  len(i.phase_loads) == 2:
+                    if  len(i.phase_loads) == 2 or len(i.phase_loads) ==1:
                         txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3/math.sqrt(3), 4))
-                    elif  len(i.phase_loads) == 6:
+                    elif  len(i.phase_loads) == 6 or len(i.phase_loads) ==3:
                         txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3, 4))
                     if not substation_name + "_" + feeder_name in self._baseKV_feeders_:
                         self._baseKV_feeders_[
@@ -2040,8 +2046,9 @@ class Writer(AbstractWriter):
                 if hasattr(i, "phase_loads") and i.phase_loads:
 
                     # if i.connection_type=='Y':
-                    # txt += " Phases={N}".format(N=len(i.phase_loads))
-                    txt += " Phases={N}".format(N=int(len(i.phase_loads) / 2)) #Adedoyin
+                    # Lusha
+                    txt += " Phases={N}".format(N=len(i.phase_loads))
+                    #txt += " Phases={N}".format(N=int(len(i.phase_loads) / 2)) #Adedoyin
                     # elif i.connection_type=='D' and len(i.phase_loads)==3:
                     #    fp.write(' Phases=3')
                     # elif i.connection_type=='D' and len(i.phase_loads)==2:
