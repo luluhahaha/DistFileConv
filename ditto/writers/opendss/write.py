@@ -2387,7 +2387,7 @@ class Writer(AbstractWriter):
 
                         # kvas
                         if hasattr(i, "windings") and i.windings is not None:
-                            kvas = " kvas=(5000,"
+                            kvas = " kvas=(50000,"
                             # Lusha
                             # increase regulator kva to avoid voltage drop
                             # for w, winding in enumerate(i.windings):
@@ -2399,7 +2399,7 @@ class Writer(AbstractWriter):
                             #             str(i.windings[w].rated_power * 10 ** -3) + ", "
                             #         )
                             # kvas = kvas[:-2]
-                            kvas += "5000)"
+                            kvas += "50000)"
                             transfo_creation_string += kvas
 
                         # emergency_power
