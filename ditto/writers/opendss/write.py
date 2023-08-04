@@ -633,9 +633,17 @@ class Writer(AbstractWriter):
                                 hasattr(winding, "nominal_voltage")
                                 and winding.nominal_voltage is not None
                             ):
-                                txt += " Kv={kv}".format(
-                                    kv=round(winding.nominal_voltage * 10 ** -3, 4)
-                                )  # OpenDSS in kvolts
+                                # Lusha
+                                # voltage base for single and three-phase transformer
+                                if N_phases[0] == 3:
+                                    txt += " Kv={kv}".format(
+                                        kv=round(winding.nominal_voltage * 10 ** -3, 4)
+                                    )  # OpenDSS in kvolts
+                                elif N_phases[0] == 1:
+                                    txt += " Kv={kv}".format(
+                                        kv=round(winding.nominal_voltage * 10 ** -3/math.sqrt(3), 4)
+                                    )  # Ope
+
 
                                 if (
                                     not substation_name + "_" + feeder_name
@@ -1974,7 +1982,12 @@ class Writer(AbstractWriter):
                     #         volt=round(i.nominal_voltage * math.sqrt(3) * 10 ** -3, 4)
                     #     )
                     # else:
-                    txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3, 4))
+                    # Lusha
+                    # single phase load
+                    if  len(i.phase_loads) == 2:
+                        txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3/math.sqrt(3), 4))
+                    elif  len(i.phase_loads) == 6:
+                        txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3, 4))
                     if not substation_name + "_" + feeder_name in self._baseKV_feeders_:
                         self._baseKV_feeders_[
                             substation_name + "_" + feeder_name
@@ -2312,8 +2325,15 @@ class Writer(AbstractWriter):
                             kvs = " kvs=("
                             for w, winding in enumerate(i.windings):
                                 if hasattr(i.windings[w], "nominal_voltage"):
+                                    # Lusha
+                                    # already in KV
+
+                                    # kvs += (
+                                    #     str(i.windings[w].nominal_voltage * 10 ** -3)
+                                    #     + ", "
+                                    # )
                                     kvs += (
-                                        str(i.windings[w].nominal_voltage * 10 ** -3)
+                                        str(i.windings[w].nominal_voltage )
                                         + ", "
                                     )
                                     if (
@@ -2323,28 +2343,29 @@ class Writer(AbstractWriter):
                                         self._baseKV_feeders_[
                                             substation_name + "_" + feeder_name
                                         ] = set()
-                                    if (
-                                        i.windings[w].nominal_voltage < 300
-                                    ):  # Line-Neutral voltage for 120 V
-                                        self._baseKV_.add(
-                                            i.windings[w].nominal_voltage
-                                            * math.sqrt(3)
-                                            * 10 ** -3
-                                        )
-                                        self._baseKV_feeders_[
-                                            substation_name + "_" + feeder_name
-                                        ].add(
-                                            winding.nominal_voltage
-                                            * math.sqrt(3)
-                                            * 10 ** -3
-                                        )
-                                    else:
-                                        self._baseKV_.add(
-                                            i.windings[w].nominal_voltage * 10 ** -3
-                                        )
-                                        self._baseKV_feeders_[
-                                            substation_name + "_" + feeder_name
-                                        ].add(winding.nominal_voltage * 10 ** -3)
+                                    # Lusha
+                                    # if (
+                                    #     i.windings[w].nominal_voltage < 300
+                                    # ):  # Line-Neutral voltage for 120 V
+                                    #     self._baseKV_.add(
+                                    #         i.windings[w].nominal_voltage
+                                    #         * math.sqrt(3)
+                                    #         * 10 ** -3
+                                    #     )
+                                    #     self._baseKV_feeders_[
+                                    #         substation_name + "_" + feeder_name
+                                    #     ].add(
+                                    #         winding.nominal_voltage
+                                    #         * math.sqrt(3)
+                                    #         * 10 ** -3
+                                    #     )
+                                    # else:
+                                    #     self._baseKV_.add(
+                                    #         i.windings[w].nominal_voltage * 10 ** -3
+                                    #     )
+                                    #     self._baseKV_feeders_[
+                                    #         substation_name + "_" + feeder_name
+                                    #     ].add(winding.nominal_voltage * 10 ** -3)
 
                             kvs = kvs[:-2]
                             kvs += ")"
