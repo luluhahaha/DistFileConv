@@ -1943,25 +1943,28 @@ class Writer(AbstractWriter):
 
                     if hasattr(i, "phase_loads") and i.phase_loads is not None:
                         #Adedoyin
-                        if len(i.phase_loads) == 6:
-                            temp = [i.phase_loads[0].phase, i.phase_loads[1].phase, i.phase_loads[2].phase,
-                                    i.phase_loads[3].phase, i.phase_loads[4].phase, i.phase_loads[5].phase]
-                            temp = [*set(temp)]
-
-                            for t in temp:
-                                p = self.phase_mapping(t)
-                                txt += ".{p}".format(
-                                    p=p
-                                )
-                        elif len(i.phase_loads) == 3:
+                        # if len(i.phase_loads) == 6:
+                        #     temp = [i.phase_loads[0].phase, i.phase_loads[1].phase, i.phase_loads[2].phase,
+                        #             i.phase_loads[3].phase, i.phase_loads[4].phase, i.phase_loads[5].phase]
+                        #     temp = [*set(temp)]
+                        #
+                        #     for t in temp:
+                        #         p = self.phase_mapping(t)
+                        #         txt += ".{p}".format(
+                        #             p=p
+                        #         )
+                        #Lusha
+                        if len(i.phase_loads) == 3:
                             temp = [i.phase_loads[0].phase, i.phase_loads[1].phase, i.phase_loads[2].phase]
                             for t in temp:
                                 p = self.phase_mapping(t)
                                 txt += ".{p}".format(
                                     p=p
                                 )
-                        elif len(i.phase_loads) == 2 or len(i.phase_loads) == 1:
+                        #elif len(i.phase_loads) == 2 or len(i.phase_loads) == 1:
+                        elif len(i.phase_loads) == 1:
                             phase_load = i.phase_loads[0]
+
                         # for phase_load in i.phase_loads:
                             if (
                                 hasattr(phase_load, "phase")
@@ -1990,9 +1993,13 @@ class Writer(AbstractWriter):
                     # else:
                     # Lusha
                     # single phase load
-                    if  len(i.phase_loads) == 2 or len(i.phase_loads) ==1:
+                    # Lusha
+                    #if  len(i.phase_loads) == 2 or len(i.phase_loads) ==1:
+                    if len(i.phase_loads) == 1:
                         txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3/math.sqrt(3), 4))
-                    elif  len(i.phase_loads) == 6 or len(i.phase_loads) ==3:
+                    # Lusha
+                    #elif  len(i.phase_loads) == 6 or len(i.phase_loads) ==3:
+                    elif len(i.phase_loads) == 3:
                         txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3, 4))
                     if not substation_name + "_" + feeder_name in self._baseKV_feeders_:
                         self._baseKV_feeders_[

@@ -6499,213 +6499,222 @@ class Reader(AbstractReader):
             else:
                 load_data = {}
 
-            if "connectedkva" in settings:
-                connectedkva = float(settings["connectedkva"])
-            else:
-                connectedkva = None
+            # Lusha
+            if "loadmodelid" in settings:
+                load_model_id =  int(settings["loadmodelid"])
 
-            if "valuetype" in settings:
-                value_type = int(settings["valuetype"])
+            # Lusha
+            # choose load model to use
+            # 1 is default, 2 is summer, 3 is winter
+            if load_model_id == 1:
 
-            if "value1" in settings and "value2" in settings:
-                if (
-                    float(settings["value1"]) == 0.0
-                    and float(settings["value2"]) == 0.0
-                ):
-                    p = 0
-                    q = 0
-                elif value_type == 0:  # P and Q are given
-                    try:
-                        p, q = float(settings["value1"]), float(settings["value2"])
-                    except:
-                        logger.warning(
-                            "WARNING:: Skipping load on section {}".format(sectionID)
-                        )
-                        continue
-                elif value_type == 1:  # KVA and PF are given
-                    try:
-                        kva, PF = (
-                            float(settings["value1"]),
-                            float(settings["value2"]) * 0.01,
-                        )
-                        if kva == 0 and "connectedkva" in settings:
-                            kva = float(settings["connectedkva"])
-                        p = kva * PF
-                        q = math.sqrt(kva ** 2 - p ** 2)
-                    except:
-                        logger.warning(
-                            "WARNING:: Skipping load on section {}".format(sectionID)
-                        )
-                        continue
-                elif value_type == 2:  # P and PF are given
+                if "connectedkva" in settings:
+                    connectedkva = float(settings["connectedkva"])
+                else:
+                    connectedkva = None
 
-                    try:
-                        p, PF = float(settings["value1"]), float(settings["value2"])
-                        if 0 <= PF <= 1:
-                            q = p * math.sqrt((1 - PF ** 2) / PF ** 2)
-                        elif 1 < PF <= 100:
-                            PF /= 100.0
-                            q = p * math.sqrt((1 - PF ** 2) / PF ** 2)
-                        else:
-                            logger.warning("problem with PF")
-                            logger.warning(PF)
-                    except:
-                        logger.warning("Skipping load on section {}".format(sectionID))
-                        continue
+                if "valuetype" in settings:
+                    value_type = int(settings["valuetype"])
 
-                elif value_type == 3:  # AMP and PF are given
-                    # TODO
-                    logger.warning(
-                        "WARNING:: Skipping load on section {}".format(sectionID)
-                    )
-                    continue
-
-                if p >= 0 or q >= 0:
-
-                    if "loadphase" in settings:
-                        phases = settings["loadphase"]
-                    else:
-                        phases = []
-
-
-                    fused = False
-                    if sectionID in duplicate_loads:
-                        fusion = True
-                        if sectionID in self._loads:
-                            api_load = self._loads[sectionID]
-                            fused = True
-                        elif p != 0:
-                            api_load = Load(model)
-                    else:
-                        fusion = False
-                        api_load = Load(model)
-
-                    if fusion and p == 0:
-                        # logger.warning(
-                        #    "WARNING:: Skipping duplicate load on section {} with p=0".format(sectionID)
-                        # )
-                        continue
-
-                    try:
-                        if fusion and sectionID in self._loads:
-                            api_load.name += "_" + reduce(
-                                lambda x, y: x + "_" + y, phases
+                if "value1" in settings and "value2" in settings:
+                    if (
+                        float(settings["value1"]) == 0.0
+                        and float(settings["value2"]) == 0.0
+                    ):
+                        p = 0
+                        q = 0
+                    elif value_type == 0:  # P and Q are given
+                        try:
+                            p, q = float(settings["value1"]), float(settings["value2"])
+                        except:
+                            logger.warning(
+                                "WARNING:: Skipping load on section {}".format(sectionID)
                             )
-                        else:
-                            api_load.name = (
-                                "Load_"
-                                + sectionID
-                                + "_"
-                                + reduce(lambda x, y: x + "_" + y, phases)
+                            continue
+                    elif value_type == 1:  # KVA and PF are given
+                        try:
+                            kva, PF = (
+                                float(settings["value1"]),
+                                float(settings["value2"]) * 0.01,
                             )
-                    except:
-                        pass
+                            if kva == 0 and "connectedkva" in settings:
+                                kva = float(settings["connectedkva"])
+                            p = kva * PF
+                            q = math.sqrt(kva ** 2 - p ** 2)
+                        except:
+                            logger.warning(
+                                "WARNING:: Skipping load on section {}".format(sectionID)
+                            )
+                            continue
+                    elif value_type == 2:  # P and PF are given
 
-                    try:
-                        if not (fusion and sectionID in self._loads):
-                            if connectedkva is not None:
-                                api_load.transformer_connected_kva = (
-                                    connectedkva * 10 ** 3
-                                )  # DiTTo in var
-                        elif connectedkva is not None:
-                            if api_load.transformer_connected_kva is None:
-                                api_load.transformer_connected_kva = (
-                                    connectedkva * 10 ** 3
-                                )  # DiTTo in var
+                        try:
+                            p, PF = float(settings["value1"]), float(settings["value2"])
+                            if 0 <= PF <= 1:
+                                q = p * math.sqrt((1 - PF ** 2) / PF ** 2)
+                            elif 1 < PF <= 100:
+                                PF /= 100.0
+                                q = p * math.sqrt((1 - PF ** 2) / PF ** 2)
                             else:
-                                api_load.transformer_connected_kva += (
-                                    connectedkva * 10 ** 3
-                                )  # DiTTo in var
-                    except:
-                        pass
+                                logger.warning("problem with PF")
+                                logger.warning(PF)
+                        except:
+                            logger.warning("Skipping load on section {}".format(sectionID))
+                            continue
 
-                    try:
-                        if not (fusion and sectionID in self._loads):
-                            api_load.connection_type = self.connection_configuration_mapping(
-                                load_data["connection"]
-                            )
-                    except:
-                        pass
+                    elif value_type == 3:  # AMP and PF are given
+                        # TODO
+                        logger.warning(
+                            "WARNING:: Skipping load on section {}".format(sectionID)
+                        )
+                        continue
 
-                    if not (fusion and sectionID in self._loads):
-                        if (
-                            "loadtype" in settings
-                            and settings["loadtype"] in self.customer_class
-                        ):
-                            load_type_data = self.customer_class[settings["loadtype"]]
+                    if p >= 0 or q >= 0:
+
+                        if "loadphase" in settings:
+                            phases = settings["loadphase"]
                         else:
-                            load_type_data = {}
+                            phases = []
 
-                    try:
+
+                        fused = False
+                        if sectionID in duplicate_loads:
+                            fusion = True
+                            if sectionID in self._loads:
+                                api_load = self._loads[sectionID]
+                                fused = True
+                            elif p != 0:
+                                api_load = Load(model)
+                        else:
+                            fusion = False
+                            api_load = Load(model)
+
+                        if fusion and p == 0:
+                            # logger.warning(
+                            #    "WARNING:: Skipping duplicate load on section {} with p=0".format(sectionID)
+                            # )
+                            continue
+
+                        try:
+                            if fusion and sectionID in self._loads:
+                                api_load.name += "_" + reduce(
+                                    lambda x, y: x + "_" + y, phases
+                                )
+                            else:
+                                api_load.name = (
+                                    "Load_"
+                                    + sectionID
+                                    + "_"
+                                    + reduce(lambda x, y: x + "_" + y, phases)
+                                )
+                        except:
+                            pass
+
+                        try:
+                            if not (fusion and sectionID in self._loads):
+                                if connectedkva is not None:
+                                    api_load.transformer_connected_kva = (
+                                        connectedkva * 10 ** 3
+                                    )  # DiTTo in var
+                            elif connectedkva is not None:
+                                if api_load.transformer_connected_kva is None:
+                                    api_load.transformer_connected_kva = (
+                                        connectedkva * 10 ** 3
+                                    )  # DiTTo in var
+                                else:
+                                    api_load.transformer_connected_kva += (
+                                        connectedkva * 10 ** 3
+                                    )  # DiTTo in var
+                        except:
+                            pass
+
+                        try:
+                            if not (fusion and sectionID in self._loads):
+                                api_load.connection_type = self.connection_configuration_mapping(
+                                    load_data["connection"]
+                                )
+                        except:
+                            pass
+
                         if not (fusion and sectionID in self._loads):
-                            api_load.connecting_element = self.section_phase_mapping[
-                                sectionID
-                            ]["fromnodeid"]
-                    except:
-                        pass
-
-                    api_load.feeder_name = self.section_feeder_mapping[sectionID]
-
-                    api_load.num_users = float(settings["numberofcustomer"])
-
-                    for ph in phases:
-                        try:
-                            api_phase_load = PhaseLoad(model)
-                        except:
-                            raise ValueError(
-                                "Unable to instanciate PhaseLoad DiTTo object."
-                            )
+                            if (
+                                "loadtype" in settings
+                                and settings["loadtype"] in self.customer_class
+                            ):
+                                load_type_data = self.customer_class[settings["loadtype"]]
+                            else:
+                                load_type_data = {}
 
                         try:
-                            api_phase_load.phase = ph
+                            if not (fusion and sectionID in self._loads):
+                                api_load.connecting_element = self.section_phase_mapping[
+                                    sectionID
+                                ]["fromnodeid"]
                         except:
                             pass
 
-                        try:
-                            api_phase_load.p, api_phase_load.q = (
-                                10 ** 3 * p / len(phases),
-                                10 ** 3 * q / len(phases),
-                            )
-                        except:
-                            pass
+                        api_load.feeder_name = self.section_feeder_mapping[sectionID]
 
-                        # ZIP load parameters
-                        try:
-                            api_phase_load.ppercentcurrent = (
-                                float(load_type_data["constantcurrentip"]) / 100.0
-                            )
-                            api_phase_load.qpercentcurrent = (
-                                float(load_type_data["constantcurrentiq"]) / 100.0
-                            )
-                            api_phase_load.ppercentpower = (
-                                float(load_type_data["constantpowerpp"]) / 100.0
-                            )
-                            api_phase_load.qpercentpower = (
-                                float(load_type_data["constantpowerpq"]) / 100.0
-                            )
-                            api_phase_load.ppercentimpedance = (
-                                float(load_type_data["constantimpedancezp"]) / 100.0
-                            )
-                            api_phase_load.qpercentimpedance = (
-                                float(load_type_data["constantimpedancezq"]) / 100.0
-                            )
-                            # api_phase_load.use_zip=1
-                            # api_phase_load.model=8
-                        except:
-                            pass
+                        api_load.num_users = float(settings["numberofcustomer"])
 
-                        # CYME store phase loads with P=0 and Q=0.
-                        # Do not add them to DiTTo (otherwise it will make the validation
-                        # on the number of objects fail since we will have many more loads than there actually are...)
-                        # if api_phase_load.p!=0 or api_phase_load.q!=0:
-                        api_load.phase_loads.append(api_phase_load)
+                        for ph in phases:
+                            try:
+                                api_phase_load = PhaseLoad(model)
+                            except:
+                                raise ValueError(
+                                    "Unable to instanciate PhaseLoad DiTTo object."
+                                )
+
+                            try:
+                                api_phase_load.phase = ph
+                            except:
+                                pass
+
+                            try:
+                                api_phase_load.p, api_phase_load.q = (
+                                    10 ** 3 * p / len(phases),
+                                    10 ** 3 * q / len(phases),
+                                )
+                            except:
+                                pass
+
+                            # ZIP load parameters
+                            try:
+                                api_phase_load.ppercentcurrent = (
+                                    float(load_type_data["constantcurrentip"]) / 100.0
+                                )
+                                api_phase_load.qpercentcurrent = (
+                                    float(load_type_data["constantcurrentiq"]) / 100.0
+                                )
+                                api_phase_load.ppercentpower = (
+                                    float(load_type_data["constantpowerpp"]) / 100.0
+                                )
+                                api_phase_load.qpercentpower = (
+                                    float(load_type_data["constantpowerpq"]) / 100.0
+                                )
+                                api_phase_load.ppercentimpedance = (
+                                    float(load_type_data["constantimpedancezp"]) / 100.0
+                                )
+                                api_phase_load.qpercentimpedance = (
+                                    float(load_type_data["constantimpedancezq"]) / 100.0
+                                )
+                                # api_phase_load.use_zip=1
+                                # api_phase_load.model=8
+                            except:
+                                pass
+
+                            # CYME store phase loads with P=0 and Q=0.
+                            # Do not add them to DiTTo (otherwise it will make the validation
+                            # on the number of objects fail since we will have many more loads than there actually are...)
+                            # if api_phase_load.p!=0 or api_phase_load.q!=0:
+                            api_load.phase_loads.append(api_phase_load)
 
 
-                    self._loads[sectionID] = api_load
-                    if not sectionID in self.section_duplicates:
-                        self.section_duplicates[sectionID] = []
-                    if not fused: #Because mutiple loads on different phases are joined into a single one
-                        self.section_duplicates[sectionID].append(api_load)
+                        self._loads[sectionID] = api_load
+                        if not sectionID in self.section_duplicates:
+                            self.section_duplicates[sectionID] = []
+                        if not fused: #Because mutiple loads on different phases are joined into a single one
+                            self.section_duplicates[sectionID].append(api_load)
 
         return 1
 
