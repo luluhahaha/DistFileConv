@@ -642,7 +642,11 @@ class Writer(AbstractWriter):
                                 elif N_phases[0] == 1:
                                     txt += " Kv={kv}".format(
                                         kv=round(winding.nominal_voltage * 10 ** -3/math.sqrt(3), 4)
-                                    )  # Ope
+                                    )
+                                elif N_phases[0] == 2:
+                                    txt += " Kv={kv}".format(
+                                        kv=round(winding.nominal_voltage * 10 ** -3, 4)
+                                    )
 
 
                                 if (
