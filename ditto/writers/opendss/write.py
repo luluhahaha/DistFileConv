@@ -410,7 +410,7 @@ class Writer(AbstractWriter):
         return 1
 
 
-    def write_transformers(self, model):
+    def write_phs(self, model):
         """Write the transformers to an OpenDSS file (Transformers.dss by default).
 
         :param model: DiTTo model
@@ -448,19 +448,21 @@ class Writer(AbstractWriter):
             if isinstance(i, PowerTransformer):
                 # Write the data in the file
                 # Name
-                if (
-                    self.separate_feeders
-                    and hasattr(i, "feeder_name")
-                    and i.feeder_name is not None
-                ):
+                # if (
+                #     self.separate_feeders
+                #     and hasattr(i, "feeder_name")
+                #     and i.feeder_name is not None
+                # ):
+                if i.feeder_name is not None:
                     feeder_name = i.feeder_name
                 else:
                     feeder_name = "DEFAULT"
-                if (
-                    self.separate_substations
-                    and hasattr(i, "substation_name")
-                    and i.substation_name is not None
-                ):
+                # if (
+                #     self.separate_substations
+                #     and hasattr(i, "substation_name")
+                #     and i.substation_name is not None
+                # ):
+                if i.substation_name is not None:
                     substation_name = i.substation_name
                 else:
                     substation_name = "DEFAULT"
@@ -634,7 +636,7 @@ class Writer(AbstractWriter):
                                 and winding.nominal_voltage is not None
                             ):
                                 # Lusha
-                                # voltage base for single and three-phase transformer
+                                #voltage base for single and three-phase transformer
                                 if N_phases[0] == 3:
                                     txt += " Kv={kv}".format(
                                         kv=round(winding.nominal_voltage * 10 ** -3, 4)
@@ -647,6 +649,9 @@ class Writer(AbstractWriter):
                                     txt += " Kv={kv}".format(
                                         kv=round(winding.nominal_voltage * 10 ** -3, 4)
                                     )
+                                # txt += " Kv={kv}".format(
+                                #     kv=round(winding.nominal_voltage * 10 ** -3, 4)
+                                # )  # OpenDSS in kvolts
 
 
                                 if (
@@ -1898,19 +1903,21 @@ class Writer(AbstractWriter):
         feeder_text_map = {}
         for i in model.models:
             if isinstance(i, Load):
-                if (
-                    self.separate_feeders
-                    and hasattr(i, "feeder_name")
-                    and i.feeder_name is not None
-                ):
+                # if (
+                #     self.separate_feeders
+                #     and hasattr(i, "feeder_name")
+                #     and i.feeder_name is not None
+                # ):
+                if i.feeder_name is not None:
                     feeder_name = i.feeder_name
                 else:
                     feeder_name = "DEFAULT"
-                if (
-                    self.separate_substations
-                    and hasattr(i, "substation_name")
-                    and i.substation_name is not None
-                ):
+                # if (
+                #     self.separate_substations
+                #     and hasattr(i, "substation_name")
+                #     and i.substation_name is not None
+                # ):
+                if i.substation_name is not None:
                     substation_name = i.substation_name
                 else:
                     substation_name = "DEFAULT"
@@ -1965,7 +1972,7 @@ class Writer(AbstractWriter):
                                 txt += ".{p}".format(
                                     p=p
                                 )
-                        #elif len(i.phase_loads) == 2 or len(i.phase_loads) == 1:
+                        #elif len(i.phase_loads) == 2:
                         elif len(i.phase_loads) == 1:
                             phase_load = i.phase_loads[0]
 
@@ -2003,7 +2010,8 @@ class Writer(AbstractWriter):
                         txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3/math.sqrt(3), 4))
                     # Lusha
                     #elif  len(i.phase_loads) == 6 or len(i.phase_loads) ==3:
-                    elif len(i.phase_loads) == 3:
+                    #elif len(i.phase_loads) == 3:
+                    else:
                         txt += " kV={volt}".format(volt=round(i.nominal_voltage * 10 ** -3, 4))
                     if not substation_name + "_" + feeder_name in self._baseKV_feeders_:
                         self._baseKV_feeders_[
@@ -2968,7 +2976,7 @@ class Writer(AbstractWriter):
                 else:
                     lines_to_geometrify.append(i)
 
-        print(line_n)
+        #print(line_n)
 
         self.write_wiredata(
             lines_to_geometrify
@@ -2978,19 +2986,21 @@ class Writer(AbstractWriter):
 
         for i in model.models:
             if isinstance(i, Line):
-                if (
-                    self.separate_feeders
-                    and hasattr(i, "feeder_name")
-                    and i.feeder_name is not None
-                ):
+                # if (
+                #     self.separate_feeders
+                #     and hasattr(i, "feeder_name")
+                #     and i.feeder_name is not None
+                # ):
+                if i.feeder_name is not None:
                     feeder_name = i.feeder_name
                 else:
                     feeder_name = "DEFAULT"
-                if (
-                    self.separate_substations
-                    and hasattr(i, "substation_name")
-                    and i.substation_name is not None
-                ):
+                # if (
+                #     self.separate_substations
+                #     and hasattr(i, "substation_name")
+                #     and i.substation_name is not None
+                # ):
+                if i.substation_name:
                     substation_name = i.substation_name
                 else:
                     substation_name = "DEFAULT"
@@ -3108,7 +3118,10 @@ class Writer(AbstractWriter):
                 if i in lines_to_geometrify:
                     txt += " geometry={g}".format(g=i.nameclass)
                 elif i in lines_to_linecodify:
-                    txt += " Linecode={c}".format(c=i.nameclass)
+                    txt += " Linecode={c}".format(c=i.nameclass+ "_" + str(len(phase_wires))) # Lusha
+
+                # Lusha write line capacity
+                txt += " normamps={c}".format(c=i.amps)  # Lusha
 
                 txt += "\n\n"
                 if fuse_line != "":
@@ -3540,19 +3553,21 @@ class Writer(AbstractWriter):
                 parsed_line = self.parse_line(i)
                 if len(parsed_line) > 0:
 
-                    if (
-                        self.separate_feeders
-                        and hasattr(i, "feeder_name")
-                        and i.feeder_name is not None
-                    ):
+                    # if (
+                    #     self.separate_feeders
+                    #     and hasattr(i, "feeder_name")
+                    #     and i.feeder_name is not None
+                    # ):
+                    if i.feeder_name is not None:
                         feeder_name = i.feeder_name
                     else:
                         feeder_name = "DEFAULT"
-                    if (
-                        self.separate_substations
-                        and hasattr(i, "substation_name")
-                        and i.substation_name is not None
-                    ):
+                    # if (
+                    #     self.separate_substations
+                    #     and hasattr(i, "substation_name")
+                    #     and i.substation_name is not None
+                    # ):
+                    if i.substation_name is not None:
                         substation_name = i.substation_name
                     else:
                         substation_name = "DEFAULT"
@@ -3569,42 +3584,48 @@ class Writer(AbstractWriter):
                         feeder_name,
                     )
 
-                    if i.nameclass is not None:
+                    # Lusha
+                    # use linecableid for linecode
+
+                    if i.linecableid is not None:
+                        i.nameclass = i.linecableid
+                        linecode_found = True
+
                         if "nphases" in parsed_line:
                             n_phases = str(parsed_line["nphases"])
                         else:
                             n_phases = ""
                         nameclass_phase = i.nameclass + "_" + n_phases
+                        #nameclass_phase = i.nameclass
                         if nameclass_phase not in self.all_linecodes:
                             self.all_linecodes[nameclass_phase] = parsed_line
                             txt[nameclass_phase] = parsed_line
-                            i.nameclass = nameclass_phase
+                            #i.nameclass = nameclass_phase
                         elif nameclass_phase not in txt:
                             txt[nameclass_phase] = parsed_line
-                            i.nameclass = nameclass_phase
-                        else:
-                            if self.all_linecodes[nameclass_phase] != parsed_line:
-                                found_subnumber = False
-                                for j in range(cnt):
-                                    if (
-                                        nameclass_phase + "_" + str(j)
-                                        in self.all_linecodes
-                                    ):
-                                        i.nameclass = nameclass_phase + "_" + str(j)
-                                        found_subnumber = True
-                                        if i.nameclass not in txt:
-                                            txt[i.nameclass] = parsed_line
-                                        break
-                                if not found_subnumber:
-                                    self.all_linecodes[
-                                        nameclass_phase + "_" + str(cnt)
-                                    ] = parsed_line
-                                    txt[nameclass_phase + "_" + str(cnt)] = parsed_line
-                                    i.nameclass = nameclass_phase + "_" + str(cnt)
-                                    cnt += 1
-                            else:
-                                i.nameclass = nameclass_phase
-
+                            #i.nameclass = nameclass_phase
+                        #else:
+                        #     if self.all_linecodes[nameclass_phase] != parsed_line:
+                        #         found_subnumber = False
+                        #         for j in range(cnt):
+                        #             if (
+                        #                 nameclass_phase + "_" + str(j)
+                        #                 in self.all_linecodes
+                        #             ):
+                        #                 i.nameclass = nameclass_phase + "_" + str(j)
+                        #                 found_subnumber = True
+                        #                 if i.nameclass not in txt:
+                        #                     txt[i.nameclass] = parsed_line
+                        #                 break
+                        #         if not found_subnumber:
+                        #             self.all_linecodes[
+                        #                 nameclass_phase + "_" + str(cnt)
+                        #             ] = parsed_line
+                        #             txt[nameclass_phase + "_" + str(cnt)] = parsed_line
+                        #             i.nameclass = nameclass_phase + "_" + str(cnt)
+                        #             cnt += 1
+                        #     else:
+                        #         i.nameclass = nameclass_phase
                     else:
                         linecode_found = False
                         for k, v in self.all_linecodes.items():

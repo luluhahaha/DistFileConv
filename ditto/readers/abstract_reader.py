@@ -764,7 +764,10 @@ class AbstractReader(object):
     def update_dict(self, d1, d2):
         for k2, v2 in d2.items():
             if k2 in d1:
-                d1[k2].update(v2)
+                # Lusha
+                # do not update settings (so that switch does not overwrite overhead lines)
+                #d1[k2].update(v2)
+                continue
             else:
                 d1[k2] = v2
         return d1

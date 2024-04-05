@@ -1044,11 +1044,6 @@ class Reader(AbstractReader):
         # Lusha
         self.parse_sections()
 
-        # Call parse method of abtract reader
-        #super(Reader, self).parse(model, **kwargs)
-        super(Reader, self).parse(**kwargs)
-        print("Done Line, Transformer, Regulator, Capacitor, Node, Load")
-
         # Lusha
         # Parse headnodes for feeders
         # The variable self.network_type is set in the parse_sections() function.
@@ -1056,6 +1051,11 @@ class Reader(AbstractReader):
         logger.info("Parsing the Headnodes...")
         self.parse_head_nodes()
         print("Done headnode")
+
+        # Call parse method of abtract reader
+        #super(Reader, self).parse(model, **kwargs)
+        super(Reader, self).parse(**kwargs)
+        print("Done Line, Transformer, Regulator, Capacitor, Node, Load")
 
         logger.info("Parsing the sources...")
         #self.parse_sources(model)
@@ -1195,6 +1195,8 @@ class Reader(AbstractReader):
         self.headnode_sub_mapping = {}
         # substation to feeders, for source use
         self.sub_feeder_mapping = {}
+        # feeder to substation
+        self.feeder_sub_mapping = {}
         # feeder to headnodes
         self.feeder_headnode_mapping = {}
 
@@ -1235,6 +1237,8 @@ class Reader(AbstractReader):
                 self.sub_feeder_mapping[subname].append(feedername)
                 self.feeder_headnode_mapping[feedername] = headnode["nodeid"]
                 self.headnode_feeder_mapping[headnode["nodeid"]] = feedername
+                self.feeder_sub_mapping[feedername] = subname
+
                 try:
                     model = self.feeder_models[feedername]
                 except:
@@ -2011,8 +2015,8 @@ class Reader(AbstractReader):
             # Lusha
             try:
                 feeders = self.node_feeder_mapping[node["nodeid"]]
-                if len(feeders) > 1:
-                    print(node["nodeid"])
+                # if len(feeders) > 1:
+                #     print(node["nodeid"])
             except:
                 print("No feeder found for node: " + str(node["nodeid"]))
                 continue
@@ -3056,7 +3060,7 @@ class Reader(AbstractReader):
         # Lusha
         missing_line = open('missing_line.txt','w')
 
-
+        section_dict = {}
         # Loop over the sections
         for sectionID, settings in self.settings.items():
 
@@ -3073,6 +3077,14 @@ class Reader(AbstractReader):
                 continue
 
             new_line = {}
+
+            # Lusha
+            # check whether sectionID (line) already exisits
+            if sectionID in section_dict.keys():
+                # print(sectionID)
+                # print(section_dict[sectionID])
+                # print(settings["type"])
+                continue
 
             # Set the name
             try:
@@ -3121,9 +3133,17 @@ class Reader(AbstractReader):
             try:
                 new_line["length"] = float(settings["length"])
             except:
-                pass
+                # Lusha
+                new_line["length"] = 0.0001
+                #pass
 
-            new_line["feeder_name"] = self.section_feeder_mapping[sectionID]
+            feeder_name = self.section_feeder_mapping[sectionID]
+            new_line["feeder_name"] = feeder_name
+            try:
+                new_line["substation_name"] = self.feeder_sub_mapping[feeder_name]
+            except:
+                #print("feeder name:" + feeder_name)
+                new_line["substation_name"]=feeder_name
 
             # Lusha
             # set node_feeder map
@@ -3808,12 +3828,149 @@ class Reader(AbstractReader):
 
 
             if line_data is None:
+                # Lusha
+                # for section line without specific overhead/underground type, generate a simple one
+                new_line["linecableid"] = "default_"+"_".join(phases)
+                settings["type"] = "default_connection"
+                new_line["nameclass"] = new_line["linecableid"]
+                new_line["line_type"] = "default_connection"
+                impedance_matrix = None
+                # In this case, we build the impedance matrix from Z+ and Z0 in the following way:
+                #         __________________________
+                #        | Z0+2*Z+  Z0-Z+   Z0-Z+   |
+                # Z= 1/3 | Z0-Z+    Z0+2*Z+ Z0-Z+   |
+                #        | Z0-Z+    Z0-Z+   Z0+2*Z+ |
+                #         --------------------------
+                try:
+                    coeff = 10 ** -3
+                    r0 = 0.00001
+                    x0 = 0.00001
+                    r1 = 0.00001
+                    x1 = 0.00001
+                    # One phase line
+                    if len(phases) == 1:
+
+                        impedance_matrix = [
+                            [
+                                1.0
+                                / 3.0
+                                * coeff
+                                * complex(
+                                    float(r0), float(x0)
+                                )
+                            ]
+                        ]
+
+                    # Two phase line
+                    elif len(phases) == 2:
+
+                        a = (
+                            1.0
+                            / 3.0
+                            * coeff
+                            * complex(
+                                2 * float(r1) + float(r0),
+                                2 * float(x1) + float(x0),
+                            )
+                        )
+                        b = (
+                            1.0
+                            / 3.0
+                            * coeff
+                            * complex(
+                                float(r0) - float(r1),
+                                float(x0) - float(x1),
+                            )
+                        )
+                        impedance_matrix = [[a, b], [b, a]]
+
+                    # Three phase line
+                    else:
+
+                        a = (
+                            1.0
+                            / 3.0
+                            * coeff
+                            * complex(
+                                2 * float(r1) + float(r0),
+                                2 * float(x1) + float(x0),
+                            )
+                        )
+                        b = (
+                            1.0
+                            / 3.0
+                            * coeff
+                            * complex(
+                                float(r0) - float(r1),
+                                float(x0) - float(x1),
+                            )
+                        )
+                        impedance_matrix = [[a, b, b], [b, a, b], [b, b, a]]
+                except:
+                    pass
+
+                new_line["impedance_matrix"] = impedance_matrix
+
+                # In the balanced case, we should have two conductor IDs: One for the phases and one for the neutral
+                # Handle the Phase conductors first:
+
+                conductor_data = {}
+                spacing_data = {}
+
+                # Loop over the phases and create the wires
+                new_line["wires"] = []
+                for phase in phases:
+                    api_wire = self.configure_wire(
+                        model,
+                        conductor_data,
+                        spacing_data,
+                        phase,
+                        False,
+                        False,
+                        False,
+                        False,
+                        False,
+                        False,
+                        False,
+                    )
+                    new_line["wires"].append(api_wire)
+
+                # Handle the neutral conductor
+
+                conductor_data = {}
+
+                # In addition, we might have some information on the spacings
+                spacing_data = {}
+
+                api_wire = self.configure_wire(
+                    model,
+                    conductor_data,
+                    spacing_data,
+                    "N",
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                )
+                new_line["wires"].append(api_wire)
+
                 if not "phase" in settings.keys():
                     logger.warning("WARNING:: Skipping Line {} !".format(sectionID))
                 # print("WARNING:: Skipping Line {} !".format(sectionID))
-                # missing_line.write('Section ID:' + sectionID  + '\n')
-                continue
+                #missing_line.write('Section ID:' + sectionID  + '\n')
             else:
+                # Lusha
+                # add linecode for each line
+                new_line["linecableid"] = line_data["id"]
+                # Lusha
+                try:
+                    new_line["amps"] = float(line_data["amps"])
+                except:
+                    new_line["amps"] = float(10000)
+
                 impedance_matrix = None
 
                 # We now face two different case:
@@ -4582,6 +4739,8 @@ class Reader(AbstractReader):
             if not sectionID in self.section_duplicates:
                 self.section_duplicates[sectionID] = []
             self.section_duplicates[sectionID].append(api_line)
+
+            section_dict[sectionID] = settings["type"]
 
         missing_line.close()
         return 1
@@ -5361,7 +5520,13 @@ class Reader(AbstractReader):
             except:
                 pass
 
-            api_transformer.feeder_name = self.section_feeder_mapping[sectionID]
+            feeder_name = self.section_feeder_mapping[sectionID]
+            api_transformer.feeder_name = feeder_name
+            # Lusha
+            try:
+                api_transformer.substation_name = self.feeder_sub_mapping[feeder_name]
+            except:
+                api_transformer.substation_name = feeder_name
 
             try:
                 phases = self.section_phase_mapping[sectionID]["phase"]
@@ -5548,9 +5713,14 @@ class Reader(AbstractReader):
                 T = np.array([[1.0, 1.0, 1.0], [1.0, a * a, a], [1.0, a, a * a]])
                 T_inv = np.linalg.inv(T)
                 Zabc = T * matrix * T_inv
+
                 Z_perc = Zabc.item((0, 0))
-                R_perc = Z_perc.real / 2.0
+                R_perc = Z_perc.real / 2.0 # What's 2 here?
                 xhl = Z_perc.imag
+
+
+
+
 
                 # Check if it's an LTC
                 #
@@ -5627,9 +5797,10 @@ class Reader(AbstractReader):
                     # Set the nominal voltage
                     try:
                         if w == 0:
+                            # DiTTo in volt
                             api_winding.nominal_voltage = (
                                 float(transformer_data["kvllprim"]) * 10 ** 3
-                            )  # DiTTo in volt
+                        )  # DiTTo in volt
                         if w == 1:
                             api_winding.nominal_voltage = (
                                 float(transformer_data["kvllsec"]) * 10 ** 3
@@ -6505,7 +6676,7 @@ class Reader(AbstractReader):
 
             # Lusha
             # choose load model to use
-            # 1 is default, 2 is summer, 3 is winter
+            # 1 is default, 2 is winter, 3 is summer
             if load_model_id == 3:
 
                 if "connectedkva" in settings:
@@ -6653,7 +6824,13 @@ class Reader(AbstractReader):
                         except:
                             pass
 
-                        api_load.feeder_name = self.section_feeder_mapping[sectionID]
+                        feeder_name = self.section_feeder_mapping[sectionID]
+                        api_load.feeder_name = feeder_name
+                        # Lusha
+                        try:
+                            api_load.substation_name = self.feeder_sub_mapping[feeder_name]
+                        except:
+                            api_load.substation_name = feeder_name
 
                         api_load.num_users = float(settings["numberofcustomer"])
 

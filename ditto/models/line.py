@@ -44,6 +44,10 @@ class Line(DiTToHasTraits):
     length = Float(
         help="""This parameter is the length of the Line.""", default_value=0
     )
+    # Lusha
+    amps = Float(
+        help="""This parameter is the capacity of the Line.""", default_value=0
+    )
     from_element = Any(
         help="""Name of the node which connects to the 'from' end of the line""",
         default_value=None,
