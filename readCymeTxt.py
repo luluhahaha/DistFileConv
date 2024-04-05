@@ -26,12 +26,12 @@ def main():
     cwd = os.getcwd()
 
 
-    # path = cwd + '/Data/BGE/Whole_network/Cyme'
+    #path = cwd + '/Data/BGE/whole_network/Cyme'
 
-    # path = cwd + '/Data/BGE/selected_10_feeders/cyme'
+    #path = cwd + '/Data/BGE/selected_10_feeders_summer/cyme'
     # path = '../Data/BGE/Two-feeder/two_feeders'
-    path = cwd + '/Data/PHI_0217/cyme'
-    #path = cwd + '/Data/PHI_0328/cyme'
+    path = cwd + '/Data/PHI/cyme'
+    #####path = cwd + '/Data/PHI_0328/cyme'
 
 
 
@@ -73,11 +73,11 @@ def main():
                 continue
             # Instanciate a Writer object
             # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
-            # w = Writer(output_path=cwd + '/Data/BGE/selected_10_feeders/Feeder_' + feedername + "/")
-            w = Writer(output_path= cwd +'/Data/PHI_0217/Feeder_' + feedername + "/")
-            #w = Writer(output_path=cwd + '/Data/PHI_0328/Feeder_' + feedername + "/")
+            #w = Writer(output_path=cwd + '/Data/BGE/selected_10_feeders_summer/Feeder_' + feedername + "/")
+            w = Writer(output_path= cwd +'/Data/PHI/Feeder_' + feedername + "/")
+            #####w = Writer(output_path=cwd + '/Data/PHI_0328/Feeder_' + feedername + "/")
             # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
-            #w = Writer(output_path= cwd + '/Data/BGE/Whole_network/Substation_'+substation +'/Feeder_'+feedername+"/")
+            #w = Writer(output_path= cwd + '/Data/BGE/whole_network/Substation_'+substation +'/Feeder_'+feedername+"/")
 
             w.write(model)
     end = time.time()
