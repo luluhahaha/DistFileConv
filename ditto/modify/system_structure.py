@@ -54,35 +54,38 @@ class system_structure_modifier(Modifier):
         # Store the model as attribute
         self.model = model
 
-        if len(args) == 1:
-            source = args[0]
-        else:
-            srcs = []
-            for obj in self.model.models:
-                if isinstance(obj, PowerSource) and obj.is_sourcebus == 1:
-                    srcs.append(obj.name)
-            srcs = np.unique(srcs)
-            if len(srcs) == 0:
-                raise ValueError("No PowerSource object found in the model.")
-            elif len(srcs) > 1:
-                raise ValueError("Mupltiple sourcebus found: {srcs}".format(srcs=srcs))
-            else:
-                source = srcs[0]
+        # Lusha, move to parse_source
+        # if len(args) == 1:
+        #     source = args[0]
+        # else:
+        #     srcs = []
+        #     for obj in self.model.models:
+        #         if isinstance(obj, PowerSource) and obj.is_sourcebus == 1:
+        #             srcs.append(obj.name)
+        #     srcs = np.unique(srcs)
+        #     if len(srcs) == 0:
+        #         raise ValueError("No PowerSource object found in the model.")
+        #     elif len(srcs) > 1:
+        #         raise ValueError("Mupltiple sourcebus found: {srcs}".format(srcs=srcs))
+        #     else:
+        #         source = srcs[0]
 
         # Store the source name as attribute
-        self.source = source
-
+        try:
+            self.source = model.source.name
+        except:
+            print("no source in feeder "+ model.name)
         # TODO: Get the source voltage properly...
         #
-        for x in self.model.models:
-            if (
-                isinstance(x, PowerSource)
-                and hasattr(x, "nominal_voltage")
-                and x.nominal_voltage is not None
-                and x.is_sourcebus
-            ):
-                self.source_voltage = x.nominal_voltage
-
+        # for x in self.model.models:
+        #     if (
+        #         isinstance(x, PowerSource)
+        #         and hasattr(x, "nominal_voltage")
+        #         and x.nominal_voltage is not None
+        #         and x.is_sourcebus
+        #     ):
+        #         self.source_voltage = x.nominal_voltage
+        self.source_voltage = model.source.nominal_voltage
         # Build the graph...
         # Note: This takes a while...
         #
@@ -93,11 +96,11 @@ class system_structure_modifier(Modifier):
         self.G = Network()
         self.G.build(self.model, source=self.source)
 
-        self.model.set_names()
+        #self.model.set_names()
         # Set the attributes in the graph
         self.G.set_attributes(self.model)
 
-        self.model.set_names()
+        #self.model.set_names()
 
         # Equipment types and names on the edges
         self.edge_equipment = nx.get_edge_attributes(self.G.graph, "equipment")

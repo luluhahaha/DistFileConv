@@ -66,7 +66,7 @@ class Reader(AbstractReader):
     |                                       LINE PARSER                                      |
     +-------------------------------------------+--------------------------------------------+
     |     'overhead_unbalanced_line_settings'   |      '[OVERHEADLINEUNBALANCED SETTING]'    |
-    +-------------------------------------------+--------------------------------------------+
+    +-----------------read.py--------------------------+--------------------------------------------+
     |            'overhead_line_settings'       |            '[OVERHEADLINE SETTING]'        |
     +-------------------------------------------+--------------------------------------------+
     |          'overhead_byphase_settings'      |            '[OVERHEAD BYPHASE SETTING]'    |
@@ -761,30 +761,52 @@ class Reader(AbstractReader):
 
         self.file_network_header = []
         self.file_network_section = []
-        self.file_network_line = []
+        self.file_network_line_overhead = []
+        self.file_network_line_overhead_byphase = []
+        self.file_network_line_underground = []
+        self.file_network_switch = []
+        self.file_network_breaker = []
+        self.file_network_fuse = []
+        self.file_network_recloser = []
+        self.file_network_sectionalizer = []
+
+
         self.file_network_trans = []
 
         self.file_network_node = []
         self.file_network_headnode = []
         self.file_network_source = []
+        self.file_network_source_eqv = []
         self.file_network_regulator = []
         self.file_network_capacitor = []
+
+
+
+
         # self.file_network_subnet = []
         # self.file_network_subconn = []
 
         is_header = False
         is_section = False
-        is_line = False
+        is_line_overhead = False
+        is_line_overhead_byphase = False
+        is_line_underground = False
+        is_switch = False
+        is_breaker = False
+        is_fuse = False
+        is_recloser = False
+        is_sectionalizer = False
         is_trans = False
         is_regulator = False
         is_node = False
         is_capacitor = False
         is_headnodes = False
         is_source = False
+        is_source_equivalent = False
 
         for line in self.content:
 
-            # if line.lower().startswith('[general]'):
+            #if line.lower().startswith('[general]'):
             #     is_header = True
             # if line.lower().startswith('[imperial]'):
             #     is_header = True
@@ -794,23 +816,38 @@ class Reader(AbstractReader):
                 is_header = True
             if "[SECTION]" in line:
                 is_section = True
-            if "overhead_unbalanced_line_settings" in line.lower() or "overhead_line_settings" in line.lower() or "overhead_byphase_settings" in line.lower() or "underground_line_settings" in line.lower() \
-                or "switch_settings" in line.lower() or "sectionalizer_settings" in line.lower() or "fuse_settings" in line.lower() or "recloser_settings" in line.lower() or "breaker_settings" in line.lower() \
-                or "network_protector_settings" in line.lower() or "[section]" in line:
-                is_line = True
-            if "auto_transformer_settings" in line.lower() or "grounding_transformer_settings" in line.lower() or "three_winding_auto_transformer_settings" in line.lower() \
+            if "overheadline setting" in line.lower() or  "overhead_unbalanced_line_settings" in line.lower() or "overhead_line_settings" in line.lower() or "overhead_byphase_settings" in line.lower():
+                is_line_overhead = True
+            if "overhead byphase setting" in line.lower():
+                is_line_overhead_byphase = True
+            if "undergroundline setting" in line.lower () or "underground_line_settings" in line.lower():
+                is_line_underground = True
+            if "switch setting" in line.lower():
+                is_switch = True
+            if "fuse setting" in line.lower():
+                is_fuse = True
+            if "breaker setting" in line.lower():
+                is_breaker = True
+            if "sectionalizer setting" in line.lower():
+                is_sectionalizer = True
+            if "recloser setting" in line.lower():
+                is_recloser = True
+            if "transformer setting" in line.lower() or "auto_transformer_settings" in line.lower() or "grounding_transformer_settings" in line.lower() or "three_winding_auto_transformer_settings" in line.lower() \
                 or "three_winding_transformer_settings" in line.lower() or "transformer_settings" in line.lower() or "phase_shifter_transformer_settings" in line.lower():
                 is_trans = True
-            if "regulator_settings" in line.lower():
+            if "regulator setting" in line.lower():
                 is_regulator = True
             if "[NODE]" in line:
                 is_node = True
-            if "serie_capacitor_settings" in line.lower() or "shunt_capacitor_settings" in line.lower():
+            if "serie_capacitor_settings" in line.lower() or "shunt capacitor setting" in line.lower():
                 is_capacitor = True
             if "[HEADNODES]" in line:
                 is_headnodes = True
-            if "[SOURCE]" in line or "[SOURCE EQUIVALENT]" in line:
+            if "[SOURCE]" in line:
                 is_source = True
+            if "[SOURCE EQUIVALENT]" in line:
+                is_source_equivalent = True
+
 
             # store header
             if is_header:
@@ -841,14 +878,69 @@ class Reader(AbstractReader):
                     is_source = False
                     continue
 
-
-            if is_line:
+            if is_source_equivalent:
                 if len(line.strip())>0:
-                    self.file_network_line.append(line)
+                    self.file_network_source_eqv.append(line)
                 else:
-                    is_line = False
+                    is_source_equivalent = False
                     continue
 
+
+            if is_line_overhead:
+                if len(line.strip())>0:
+                    self.file_network_line_overhead.append(line)
+                else:
+                    is_line_overhead = False
+                    continue
+
+            if is_line_overhead_byphase:
+                if len(line.strip())>0:
+                    self.file_network_line_overhead_byphase.append(line)
+                else:
+                    is_line_overhead_byphase = False
+                    continue
+
+            if is_line_underground:
+                if len(line.strip())>0:
+                    self.file_network_line_underground.append(line)
+                else:
+                    is_line_underground = False
+                    continue
+
+            if is_switch:
+                if len(line.strip())>0:
+                    self.file_network_switch.append(line)
+                else:
+                    is_switch = False
+                    continue
+
+            if is_fuse:
+                if len(line.strip())>0:
+                    self.file_network_fuse.append(line)
+                else:
+                    is_fuse = False
+                    continue
+
+            if is_breaker:
+                if len(line.strip())>0:
+                    self.file_network_breaker.append(line)
+                else:
+                    is_breaker = False
+                    continue
+
+            if is_recloser:
+                if len(line.strip())>0:
+                    self.file_network_recloser.append(line)
+                else:
+                    is_recloser = False
+                    continue
+
+            if is_sectionalizer:
+                if len(line.strip())>0:
+                    self.file_network_sectionalizer.append(line)
+                else:
+                    is_sectionalizer = False
+                    continue
 
             if is_section:
                 if len(line.strip())>0:
@@ -878,13 +970,277 @@ class Reader(AbstractReader):
                     is_capacitor = False
                     continue
 
+        print("done with reading network.txt file\n")
 
-            # if is_inter_node:
-            #     if len(line.strip()) > 0:
-            #         self.file_network_inter_node.append(line)
-            #     else:
-            #         is_inter_node = False
-            #         continue
+
+    def parse_equipment_file(self):
+        self.get_file_content("equipment")
+
+        self.file_equipment_cable = []
+        self.file_equipment_cable_concentric_neutral = []
+        self.file_equipment_cable_insulation = []
+        self.file_equipment_cable_conductor = []
+        self.file_equipment_conductor = []
+        self.file_equipment_spacing = []
+        self.file_equipment_line = []
+        self.file_equipment_line_unbalanced = []
+        self.file_equipment_IM = []
+        self.file_equipment_SM = []
+        self.file_equipment_IG = []
+        self.file_equipment_SG = []
+        self.file_equipment_ECG = []
+        self.file_equipment_regulator = []
+        self.file_equipment_switch = []
+        self.file_equipment_breaker = []
+        self.file_equipment_fuse = []
+        self.file_equipment_recloser = []
+        self.file_equipment_sectionalizer = []
+        self.file_equipment_substation = []
+        self.file_equipment_transformer = []
+        self.file_equipment_capacitor = []
+
+        is_cable = False
+        is_cable_concentric_neutral = False
+        is_cable_insulation = False
+        is_cable_conductor = False
+        is_conductor = False
+        is_spacing  = False
+        is_line = False
+        is_line_unbalanced = False
+        is_IM = False
+        is_SM = False
+        is_IG = False
+        is_SG = False
+        is_ECG = False
+        is_regulator = False
+        is_switch = False
+        is_breaker = False
+        is_fuse = False
+        is_recloser = False
+        is_sectionalizer = False
+        is_substation = False
+        is_transformer = False
+        is_capacitor = False
+
+
+        for line in self.content:
+            # header part
+            # if "cyme_version" in line.lower() or "[si]" in line.lower() or "[imperial]" in line.lower():
+            #     is_header = True
+            # if "[SECTION]" in line:
+            #     is_section = True
+
+            # header part
+            if "cyme_version" in line.lower() or "[si]" in line.lower() or "[imperial]" in line.lower():
+                is_header = True
+            if "[cable]" in line.lower():
+                is_cable = True
+            if "[cable concentric neutral]" in line.lower():
+                is_cable_concentric_neutral = True
+            if "[cable insulation]" in line.lower():
+                is_cable_insulation = True
+            if "[cable conductor]" in line.lower():
+                is_cable_conductor = True
+            if "[conductor]" in line.lower():
+                is_conductor = True
+            if "[spacing" in line.lower():
+                is_spacing = True
+            if "[line]" in line.lower():
+                is_line = True
+            if "[line unbalanced]" in line.lower():
+                is_line_unbalanced = True
+            if "[induction motor]" in line.lower():
+                is_IM = True
+            if "[synchronous motor]" in line.lower():
+                is_SM = True
+            if "[induction generator]" in line.lower():
+                is_IG = True
+            if "[synchronous generator]" in line.lower():
+                is_SG = True
+            if "[electronic converter generator]" in line.lower():
+                is_ECG = True
+            if "[regulator]" in line.lower():
+                is_regulator = True
+            if "[switch]" in line.lower():
+                is_switch = True
+            if "[breaker]" in line.lower():
+                is_breaker = True
+            if "[recloser]" in line.lower():
+                is_recloser = True
+            if "[fuse]" in line.lower():
+                is_fuse = True
+            if "[sectionalizer]" in line.lower():
+                is_sectionalizer = True
+            if "[substation]" in line.lower():
+                is_substation = True
+            if "[transformer]" in line.lower():
+                is_transformer = True
+            if "[shunt capacitor]" in line.lower():
+                is_capacitor = True
+
+
+
+
+
+            if is_cable:
+                if len(line.strip()) > 0:
+                    self.file_equipment_cable.append(line)
+                else:
+                    is_cable = False
+                    continue
+
+            if is_cable_concentric_neutral:
+                if len(line.strip()) > 0:
+                    self.file_equipment_cable_concentric_neutral.append(line)
+                else:
+                    is_cable_concentric_neutral = False
+                    continue
+
+
+            if is_cable_insulation:
+                if len(line.strip()) > 0:
+                    self.file_equipment_cable_insulation.append(line)
+                else:
+                    is_cable_insulation = False
+                    continue
+
+
+            if is_cable_conductor:
+                if len(line.strip()) > 0:
+                    self.file_equipment_cable_conductor.append(line)
+                else:
+                    is_cable_conductor = False
+                    continue
+
+
+            if is_conductor:
+                if len(line.strip()) > 0:
+                    self.file_equipment_conductor.append(line)
+                else:
+                    is_conductor = False
+                    continue
+
+
+            if is_spacing:
+                if len(line.strip()) > 0:
+                    self.file_equipment_spacing.append(line)
+                else:
+                    is_spacing = False
+                    continue
+
+            if is_line:
+                if len(line.strip()) > 0:
+                    self.file_equipment_line.append(line)
+                else:
+                    is_line = False
+                    continue
+
+            if is_line_unbalanced:
+                if len(line.strip()) > 0:
+                    self.file_equipment_line_unbalanced.append(line)
+                else:
+                    is_line_unbalanced = False
+                    continue
+
+            if is_IM:
+                if len(line.strip()) > 0:
+                    self.file_equipment_IM.append(line)
+                else:
+                    is_IM = False
+                    continue
+
+            if is_SM:
+                if len(line.strip()) > 0:
+                    self.file_equipment_SM.append(line)
+                else:
+                    is_SM = False
+                    continue
+
+            if is_IG:
+                if len(line.strip()) > 0:
+                    self.file_equipment_IG.append(line)
+                else:
+                    is_IG = False
+                    continue
+
+            if is_SG:
+                if len(line.strip()) > 0:
+                    self.file_equipment_SG.append(line)
+                else:
+                    is_SG = False
+                    continue
+
+            if is_ECG:
+                if len(line.strip()) > 0:
+                    self.file_equipment_ECG.append(line)
+                else:
+                    is_ECG = False
+                    continue
+
+            if is_regulator:
+                if len(line.strip()) > 0:
+                    self.file_equipment_regulator.append(line)
+                else:
+                    is_regulator = False
+                    continue
+
+            if is_switch:
+                if len(line.strip()) > 0:
+                    self.file_equipment_switch.append(line)
+                else:
+                    is_switch = False
+                    continue
+
+            if is_breaker:
+                if len(line.strip()) > 0:
+                    self.file_equipment_breaker.append(line)
+                else:
+                    is_breaker = False
+                    continue
+
+
+            if is_fuse:
+                if len(line.strip()) > 0:
+                    self.file_equipment_fuse.append(line)
+                else:
+                    is_fuse = False
+                    continue
+
+
+            if is_recloser:
+                if len(line.strip()) > 0:
+                    self.file_equipment_recloser.append(line)
+                else:
+                    is_recloser = False
+                    continue
+
+            if is_sectionalizer:
+                if len(line.strip()) > 0:
+                    self.file_equipment_sectionalizer.append(line)
+                else:
+                    is_sectionalizer = False
+                    continue
+
+            if is_substation:
+                if len(line.strip()) > 0:
+                    self.file_equipment_substation.append(line)
+                else:
+                    is_substation = False
+                    continue
+
+            if is_transformer:
+                if len(line.strip()) > 0:
+                    self.file_equipment_transformer.append(line)
+                else:
+                    is_transformer = False
+                    continue
+
+            if is_capacitor:
+                if len(line.strip()) > 0:
+                    self.file_equipment_capacitor.append(line)
+                else:
+                    is_capacitor = False
+                    continue
 
 
 
@@ -924,7 +1280,10 @@ class Reader(AbstractReader):
         # If we have a least one
         if any(checks):
             # Get the next line
-            next_line = next(self.content)
+            try:
+                next_line = next(self.content)
+            except:
+                return
 
             # If the next line provides the format, then grab it
             if "format" in next_line.lower():
@@ -1031,9 +1390,14 @@ class Reader(AbstractReader):
 
         #Lusha
         # read network file and store different part
-        # if self.verbose:
-        #     logger.info("Loading Network File...")
-        # self.parse_network_file()
+        if self.verbose:
+            logger.info("Loading Network File...")
+        self.parse_network_file()
+
+        # read equipment file
+        if self.verbose:
+            logger.info("Loading Equipment File...")
+        self.parse_equipment_file()
 
         if self.verbose:
             logger.info("Parsing the header...")
@@ -1043,6 +1407,8 @@ class Reader(AbstractReader):
         #self.parse_sections(model)
         # Lusha
         self.parse_sections()
+        #print("Done section")
+
 
         # Lusha
         # Parse headnodes for feeders
@@ -1064,15 +1430,15 @@ class Reader(AbstractReader):
         self.parse_sources()
 
 
-        logger.info("Parsing the network equivalents...")
+        #logger.info("Parsing the network equivalents...")
         #self.parse_network_equivalent(model)
         #self.parse_network_equivalent()
-        print("Done Equivalent")
+        #print("Done Equivalent")
 
 
 
 
-        logger.info("Parsing the subnetwork connections...")
+        #logger.info("Parsing the subnetwork connections...")
         #self.parse_subnetwork_connections()
 
 
@@ -1089,7 +1455,7 @@ class Reader(AbstractReader):
         # Lusha
 
         #self.fix_section_overlaps(model)
-        self.fix_section_overlaps()
+        #self.fix_section_overlaps()
         print("Done Fix Section Overlap")
 
         print("Done all feeder fix section overlap")
@@ -1121,11 +1487,10 @@ class Reader(AbstractReader):
         self.use_SI = None
 
         # Open any file. For example the network file
-        self.get_file_content("network")
-        for line in self.content:
+        #self.get_file_content("network")
+        #for line in self.content:
+        for line in self.file_network_header:
             # Lusha
-            if line.lower().startswith("[node"):
-                break
             if "cyme_version" in line.lower():
                 try:
                     cyme_version = line.split("=")[1].strip()
@@ -1187,7 +1552,7 @@ class Reader(AbstractReader):
         print("Inside parse_head_nodes")
         """ This parses the [HEADNODES] objects and is used to build Feeder_metadata DiTTo objects which define the feeder names and feeder headnodes"""
         # Open the network file
-        self.get_file_content("network")
+        #self.get_file_content("network")
         # Lusha
         # source headnode to feeder, for source equivalent use
         self.headnode_feeder_mapping = {}
@@ -1209,11 +1574,14 @@ class Reader(AbstractReader):
             "structureid": 3
         }  # These correspond to the head node name and the feeder name
         headnodes = {}
+
+        self.content = iter(self.file_network_headnode)
         # Lusha
-        for line in self.content:
-            headnodes.update(
-                self.parser_helper(line, ["headnodes"], ["nodeid", "networkid","structureid"], mapp)
-            )
+        #for line in self.file_network_headnode:
+        line = next(self.content)
+        headnodes.update(
+            self.parser_helper(line, ["headnodes"], ["nodeid", "networkid","structureid"], mapp)
+        )
 
         for sid, headnode in headnodes.items():
             # Lusha
@@ -1257,7 +1625,7 @@ class Reader(AbstractReader):
         print("Inside parse_source")
         """Parse the sources."""
         # Open the network file
-        self.get_file_content("network")
+        #self.get_file_content("network")
 
         #mapp = {"sourceid": 0, "nodeid": 2, "networkid": 3, "desiredvoltage": 4}
         # Lusha
@@ -1285,66 +1653,82 @@ class Reader(AbstractReader):
         subs = {}
         source_equivalents = {}
 
-        for line in self.content:
-            sources.update(
-                self.parser_helper(
-                    line,
-                    ["source"],
-                    # ["sourceid", "nodeid", "networkid", "desiredvoltage"],
+        # iterate source
+        self.content = iter(self.file_network_source)
+        line = next(self.content)
+        #for line in self.content:
+        sources.update(
+            self.parser_helper(
+                line,
+                ["source"],
+                # ["sourceid", "nodeid", "networkid", "desiredvoltage"],
+                # Lusha
+                # parse OperatingVoltageA
+                ["sourceid", "nodeid", "networkid", "operatingvoltagea"],
+                mapp,
+            )
+        )
+
+        self.content = iter(self.file_network_source_eqv)
+        line = next(self.content)
+        source_equivalents.update(
+            self.parser_helper(
+                line,
+                ["source_equivalent"],
+                [
+                    "nodeid",
+                    "voltage",
+                    "operatingangle1",
+                    "operatingangle2",
+                    "operatingangle3",
+                    "usesecondlevelimpedance", # TODO: add logic to look for this parameter and add secondlevel r & x in case it's selected
+                    "positivesequenceresistance",
+                    "positivesequencereactance",
+                    "zerosequencereactance",
+                    "zerosequenceresistance",
+                    "configuration",
+                    "basemva",
+                    "loadmodelname",
+                    "firstlevelr1",
+                    "firstlevelx1",
+                    "firstlevelr0",
+                    "firstlevelx0",
                     # Lusha
-                    # parse OperatingVoltageA
-                    ["sourceid", "nodeid", "networkid", "operatingvoltagea"],
-                    mapp,
-                )
+                    "operatingvoltage1",
+                    "operatingvoltage2",
+                    "operatingvoltage3"
+                ],
+                mapp_source_equivalent,
             )
-            source_equivalents.update(
-                self.parser_helper(
-                    line,
-                    ["source_equivalent"],
-                    [
-                        "nodeid",
-                        "voltage",
-                        "operatingangle1",
-                        "operatingangle2",
-                        "operatingangle3",
-                        "usesecondlevelimpedance", # TODO: add logic to look for this parameter and add secondlevel r & x in case it's selected
-                        "positivesequenceresistance",
-                        "positivesequencereactance",
-                        "zerosequencereactance",
-                        "zerosequenceresistance",
-                        "configuration",
-                        "basemva",
-                        "loadmodelname",
-                        "firstlevelr1",
-                        "firstlevelx1",
-                        "firstlevelr0",
-                        "firstlevelx0",
-                        # Lusha
-                        "operatingvoltage1",
-                        "operatingvoltage2",
-                        "operatingvoltage3"
-                    ],
-                    mapp_source_equivalent,
-                )
-            )
+        )
 
 
-        self.get_file_content("equipment")
-
-        for line in self.content:
-            subs.update(
-                self.parser_helper(
-                    line, ["substation"], ["id", "mva", "kvll", "conn"], mapp_sub
-                )
+        #self.get_file_content("equipment")
+        self.content = iter(self.file_equipment_substation)
+        line = next(self.content)
+        #for line in self.content:
+        subs.update(
+            self.parser_helper(
+                line, ["substation"], ["id", "mva", "kvll", "conn"], mapp_sub
             )
+        )
         # store source equivalent
         for sid, source_equivalent_data in source_equivalents.items():
 
-            if source_equivalent_data["loadmodelname"].lower() != "default":
-                # Lusha
-                # if no loadmodelname, then it is default
-                if source_equivalent_data["loadmodelname"].lower() != '':
-                    continue  # Want to only use the default source equivalent configuration
+            # if source_equivalent_data["loadmodelname"].lower() != "default":
+            #     # Lusha
+            #     # if no loadmodelname, then it is default
+            #     if source_equivalent_data["loadmodelname"].lower() != '':
+            #         continue  # Want to only use the default source equivalent configuration
+
+            # Lusha
+            # only use summer data BGE
+            # for PHI it is all default
+            # source for summer
+
+            if source_equivalent_data["loadmodelname"].lower() == "default" or \
+                    source_equivalent_data["loadmodelname"].lower() == "winter":
+                continue
 
             # Lusha
             # feeder headnode, usually in source equivalent
@@ -1356,6 +1740,7 @@ class Reader(AbstractReader):
             elif source_equivalent_data["nodeid"] in self.headnode_sub_mapping.keys():
                 subname = self.headnode_sub_mapping[source_equivalent_data["nodeid"]]
                 feeders = self.sub_feeder_mapping[subname]
+                continue
             else:
                 raise ValueError("No Source or SourceEq found for Headnode " + str(source_equivalent_data["nodeid"]) + "!")
 
@@ -1364,19 +1749,19 @@ class Reader(AbstractReader):
             # if self.sub_source_flag[subname] == 1:
             #     continue
 
-            for k, v in self.section_phase_mapping.items():
-                if v["fromnodeid"] == source_equivalent_data["nodeid"]:
-                    sectionID = k
-                    _from = v["fromnodeid"]
-                    _to = v["tonodeid"]
-                    phases = list(v["phase"])
-                if (
-                    v["tonodeid"] == source_equivalent_data["nodeid"]
-                ):  # In case the edge is connected backwards
-                    sectionID = k
-                    _from = v["tonodeid"]
-                    _to = v["fromnodeid"]
-                    phases = list(v["phase"])
+            # for k, v in self.section_phase_mapping.items():
+            #     if v["fromnodeid"] == source_equivalent_data["nodeid"]:
+            #         sectionID = k
+            #         _from = v["fromnodeid"]
+            #         _to = v["tonodeid"]
+            #         phases = list(v["phase"])
+            #     if (
+            #         v["tonodeid"] == source_equivalent_data["nodeid"]
+            #     ):  # In case the edge is connected backwards
+            #         sectionID = k
+            #         _from = v["tonodeid"]
+            #         _to = v["fromnodeid"]
+            #         phases = list(v["phase"])
 
             # Lusha
             for feedername in feeders:
@@ -1388,6 +1773,7 @@ class Reader(AbstractReader):
                     if model.assigned_source == 1:
                         continue
                     api_source = PowerSource(model)
+                    model.source = api_source
                 except:
                     pass
 
@@ -1402,13 +1788,13 @@ class Reader(AbstractReader):
                         )
                     else:
                         api_source.nominal_voltage = (
-                                float(source_equivalent_data["operatingvoltage1"]) * 10 ** 3
+                                float(source_equivalent_data["operatingvoltage1"]) * 10 ** 3 * math.sqrt(3)
                         )
                 except:
                     pass
 
                 try:
-                    api_source.phases = phases
+                    api_source.phases = phases # didn't assign this
                 except:
                     pass
 
@@ -1463,6 +1849,7 @@ class Reader(AbstractReader):
                 # Lusha
                 # mark the feeder model with source
                 model.assigned_source = 1
+
             #self.sub_source_flag[subname] = 1
 
         # store source
@@ -1485,17 +1872,17 @@ class Reader(AbstractReader):
                 #     continue
 
                 # Find the section
-                for k, v in self.section_phase_mapping.items():
-                    if v["fromnodeid"] == sdata["nodeid"]:
-                        sectionID = k
-                        _from = v["fromnodeid"]
-                        _to = v["tonodeid"]
-                        phases = list(v["phase"])
-                    if v["tonodeid"] == sdata["nodeid"]: #If it's backwards
-                        sectionID = k
-                        _to = v["fromnodeid"]
-                        _from = v["tonodeid"]
-                        phases = list(v["phase"])
+                # for k, v in self.section_phase_mapping.items():
+                #     if v["fromnodeid"] == sdata["nodeid"]:
+                #         sectionID = k
+                #         _from = v["fromnodeid"]
+                #         _to = v["tonodeid"]
+                #         phases = list(v["phase"])
+                #     if v["tonodeid"] == sdata["nodeid"]: #If it's backwards
+                #         sectionID = k
+                #         _to = v["fromnodeid"]
+                #         _from = v["tonodeid"]
+                #         phases = list(v["phase"])
 
                 # Lusha
                 # for each feeder in the substation, assign a new source
@@ -1508,6 +1895,7 @@ class Reader(AbstractReader):
                         if model.assigned_source == 1:
                             continue
                         api_source = PowerSource(model)
+                        model.source = api_source
                     except:
                         pass
 
@@ -1529,8 +1917,10 @@ class Reader(AbstractReader):
                             api_source.nominal_voltage = (
                                 float(source_equivalent_data["voltage"]) * 10 ** 3
                             )
+                        model.source_voltage = api_source.nominal_voltage
                     except:
                         pass
+
 
                     try:
                         api_source.phases = phases
@@ -1553,30 +1943,33 @@ class Reader(AbstractReader):
                     except:
                         pass
 
-                    # try:
-                    if "positivesequenceresistance" in source_equivalent_data:
-                        api_source.positive_sequence_impedance = complex(
-                            float(source_equivalent_data["positivesequenceresistance"]),
-                            float(source_equivalent_data["positivesequencereactance"]),
-                        )
-                    else:
-                        api_source.positive_sequence_impedance = complex(
-                            float(source_equivalent_data["firstlevelr1"]),
-                            float(source_equivalent_data["firstlevelx1"]),
-                        )
-                    # except:
-                    # pass
-                    if "zerosequenceresistance" in source_equivalent_data:
-                        api_source.zero_sequence_impedance = complex(
-                            float(source_equivalent_data["zerosequenceresistance"]),
-                            float(source_equivalent_data["zerosequencereactance"]),
-                        )
-                    else:
-                        api_source.zero_sequence_impedance = complex(
-                            float(source_equivalent_data["firstlevelr0"]),
-                            float(source_equivalent_data["firstlevelx0"]),
-                        )
+                    try:
+                        if "positivesequenceresistance" in source_equivalent_data:
+                            api_source.positive_sequence_impedance = complex(
+                                float(source_equivalent_data["positivesequenceresistance"]),
+                                float(source_equivalent_data["positivesequencereactance"]),
+                            )
+                        else:
+                            api_source.positive_sequence_impedance = complex(
+                                float(source_equivalent_data["firstlevelr1"]),
+                                float(source_equivalent_data["firstlevelx1"]),
+                            )
+                    except:
+                        pass
 
+                    try:
+                        if "zerosequenceresistance" in source_equivalent_data:
+                            api_source.zero_sequence_impedance = complex(
+                                float(source_equivalent_data["zerosequenceresistance"]),
+                                float(source_equivalent_data["zerosequencereactance"]),
+                            )
+                        else:
+                            api_source.zero_sequence_impedance = complex(
+                                float(source_equivalent_data["firstlevelr0"]),
+                                float(source_equivalent_data["firstlevelx0"]),
+                            )
+                    except:
+                        pass
 
                     try:
                         api_source.zero_sequence_impedance = complex(
@@ -1966,8 +2359,8 @@ class Reader(AbstractReader):
         self._nodes = []
 
         # Open the network file
-        self.get_file_content("network")
-
+        #self.get_file_content("network")
+        self.content = iter(self.file_network_node)
         # Default mapp (positions if all fields are present in the format)
         mapp = {
             "nodeid": 0,
@@ -1993,23 +2386,26 @@ class Reader(AbstractReader):
                 "ratedvoltage",
             ]
         }  # In case there are buses included in the node list with x1, y1, x2, y2 positions
-        for line in self.content:
-            nodes.update(
-                self.parser_helper(
-                    line,
-                    ["node"],
-                    ["nodeid", "coordx", "coordy", "ratedvoltage"],
-                    mapp,
-                    **kwargs
-                )
+        #for line in self.content:
+        line = next(self.content)
+        nodes.update(
+            self.parser_helper(
+                line,
+                ["node"],
+                ["nodeid", "coordx", "coordy", "ratedvoltage"],
+                mapp,
+                **kwargs
             )
-        self.get_file_content("network")
-        for line in self.content:
-            node_connectors.update(
-                self.parser_helper(
-                    line, ["node_connector"], ["nodeid", "coordx", "coordy"], mapp
-                )
+        )
+        #self.get_file_content("network")
+        #for line in self.content:
+        self.content = iter(self.file_network_node)
+        line = next(self.content)
+        node_connectors.update(
+            self.parser_helper(
+                line, ["node_connector"], ["nodeid", "coordx", "coordy"], mapp
             )
+        )
 
         for ID, node in nodes.items():
             # Lusha
@@ -2026,6 +2422,18 @@ class Reader(AbstractReader):
                 model = self.feeder_models[feedername]
                 # Create a new DiTTo node object
                 api_node = Node(model)
+
+                try:
+                    api_node.feeder_name = feedername
+                except:
+                    print("no feedername for node "+ str(ID))
+                    pass
+
+                try:
+                    api_node.substation_name = self.feeder_sub_mapping[feedername]
+                except:
+                    api_node.substation_name = api_node.feeder_name
+                    pass
 
                 # Set the name
                 try:
@@ -2137,6 +2545,7 @@ class Reader(AbstractReader):
         try:
             api_wire.ampacity = float(conductor_data["amps"])
         except:
+            api_wire.ampacity = 10000
             pass
 
         # Set the interupting current of the wire if it is a network protectors, a fuse, a sectionalizer, a breaker, or a recloser
@@ -2238,171 +2647,152 @@ class Reader(AbstractReader):
         job_is_done = False
 
         # Open the network file
-        self.get_file_content("network")
+        #self.get_file_content("network")
         # Loop over the network file
-        for line in self.content:
+        #for line in self.content:
+        for line in self.file_network_section:
 
+            if line.startswith("["):
+                continue
 
+            # First, we grab the format used to define sections
+            if "format_section" in line.lower():
+                format_section = list(
+                    map(
+                        lambda x: x.strip(),
+                        map(lambda x: x.lower(), line.split("=")[1].split(",")),
+                    )
+                )
 
-            # This will stop reading the file if we have already worked on the sections
-            if job_is_done:
-                break
+            # Then, we grab the format used to define feeders
+            elif (
+                "format_feeder" in line.lower()
+                or "format_substation" in line.lower()
+                or "format_generalnetwork" in line.lower()
+            ):
+                format_feeder = list(
+                    map(
+                        lambda x: x.strip(),
+                        map(lambda x: x.lower(), line.split("=")[1].split(",")),
+                    )
+                )
 
-            # Find the section section
-            if "[SECTION]" in line:
-
-                job_is_done = True
-
-                line = next(self.content)
-
-                # # Lusha
-                # line = line.replace('\t', ',')
-
-                # Until we meet the next section header, work...
-                while len(line) > 2 and (
-                    line[0] != "["
-                    or line[0] != " "
-                    or line[0] != "\n"
-                    or line[0] != "\t\n"
+            # If we have a new feeder declaration
+            elif len(line) >= 7 and (
+                line[:7].lower() == "feeder="
+                or line[:11].lower() == "substation="
+                or line[:11].lower() == "substation="
+                or line[:15].lower() == "generalnetwork="
+            ):
+                if (
+                    line[:7].lower() == "feeder="
+                    or line[:15].lower() == "generalnetwork="
                 ):
+                    # Lusha
+                    model = Store()
+                    model.network_type = "feeder"
+                    model.assigned_source = 0
+                    #self.network_type = "feeder"
+                if line[:11].lower() == "substation=":
+                    # Lusha
+                    model = Store()
+                    model.network_type = "substation"
+                    #self.network_type = "substation"
 
-                    # First, we grab the format used to define sections
-                    if "format_section" in line.lower():
-                        format_section = list(
-                            map(
-                                lambda x: x.strip(),
-                                map(lambda x: x.lower(), line.split("=")[1].split(",")),
-                            )
+
+                # We should have a format for sections and feeders,
+                # otherwise, raise an error...
+                if format_section is None:
+                    raise ValueError("No format for sections.")
+
+                if format_feeder is None:
+                    raise ValueError("No format for feeders.")
+
+                # Get the feeder data (everything after the '=' symbol)
+                feeder_data = line.split("=")[1].split(",")
+
+                # Check that the data obtained have the same length as the format provided
+                # otherwise, raise an error...
+                if len(feeder_data) != len(format_feeder):
+                    raise ValueError(
+                        "Feeder/substation data length {a} does not match feeder format length {b}.".format(
+                            a=len(feeder_data), b=len(format_feeder)
                         )
+                    )
 
-                    # Then, we grab the format used to define feeders
-                    elif (
-                        "format_feeder" in line.lower()
-                        or "format_substation" in line.lower()
-                        or "format_generalnetwork" in line.lower()
-                    ):
-                        format_feeder = list(
-                            map(
-                                lambda x: x.strip(),
-                                map(lambda x: x.lower(), line.split("=")[1].split(",")),
-                            )
+                # Check that we have a networkid in the format
+                # otherwise, raise an error...
+                if "networkid" not in format_feeder:
+                    raise ValueError(
+                        "Cannot find the networkid in format: "
+                        + str(format_feeder)
+                    )
+
+                # Check that we have a sectionid in the format
+                # otherwise, raise an error...
+                if "sectionid" not in format_section:
+                    raise ValueError(
+                        "Cannot find the sectionid in format: "
+                        + str(format_section)
+                    )
+
+                # We should be able to get the networkid from the feeder data.
+                _netID = feeder_data[format_feeder.index("networkid")].lower()
+
+                # First, we store all the feeder data in the network_data structure
+                self.network_data[_netID] = {}
+                for key, value in zip(format_feeder, feeder_data):
+                    self.network_data[_netID][key] = value
+
+
+                # Then, we create a new entry in feeder_section_mapping
+                self.feeder_section_mapping[_netID] = []
+
+                # Lusha
+                self.feeder_models[_netID] = model
+
+
+
+            # Otherwise, we should have a new section...
+            else:
+                # If we have no networkid at this point, raise an error
+                # Note: If CYME allows sections to be define without
+                # a network, remove this safety check
+                #
+                if _netID is None:
+                    raise ValueError(
+                        "No network ID available when reading line \n" + line
+                    )
+                # Extract the data for this section
+                section_data = list(map(lambda x: x.strip(), line.split(",")))
+
+                # Check length coherence...
+                if len(section_data) != len(format_section):
+                    raise ValueError(
+                        "Section data length {a} does not match section format length {b}.".format(
+                            a=len(section_data), b=len(format_section)
                         )
+                    )
 
-                    # If we have a new feeder declaration
-                    elif len(line) >= 7 and (
-                        line[:7].lower() == "feeder="
-                        or line[:11].lower() == "substation="
-                        or line[:11].lower() == "substation="
-                        or line[:15].lower() == "generalnetwork="
-                    ):
-                        if (
-                            line[:7].lower() == "feeder="
-                            or line[:15].lower() == "generalnetwork="
-                        ):
-                            # Lusha
-                            model = Store()
-                            model.network_type = "feeder"
-                            model.assigned_source = 0
-                            #self.network_type = "feeder"
-                        if line[:11].lower() == "substation=":
-                            # Lusha
-                            model = Store()
-                            model.network_type = "substation"
-                            #self.network_type = "substation"
+                # Grab the sectionid
+                _sectionID = section_data[
+                    format_section.index("sectionid")
+                ].lower()
 
-                        # We should have a format for sections and feeders,
-                        # otherwise, raise an error...
-                        if format_section is None:
-                            raise ValueError("No format for sections.")
+                # Create a new entry in section_phase_mapping
+                self.section_phase_mapping[_sectionID] = {}
 
-                        if format_feeder is None:
-                            raise ValueError("No format for feeders.")
+                # Populate this new entry
+                for key, value in zip(format_section, section_data):
+                    self.section_phase_mapping[_sectionID][key] = value
 
-                        # Get the feeder data (everything after the '=' symbol)
-                        feeder_data = line.split("=")[1].split(",")
+                # And finally, add a new entry to section_feeder_mapping
+                self.section_feeder_mapping[_sectionID] = _netID
 
-                        # Check that the data obtained have the same length as the format provided
-                        # otherwise, raise an error...
-                        if len(feeder_data) != len(format_feeder):
-                            raise ValueError(
-                                "Feeder/substation data length {a} does not match feeder format length {b}.".format(
-                                    a=len(feeder_data), b=len(format_feeder)
-                                )
-                            )
-
-                        # Check that we have a networkid in the format
-                        # otherwise, raise an error...
-                        if "networkid" not in format_feeder:
-                            raise ValueError(
-                                "Cannot find the networkid in format: "
-                                + str(format_feeder)
-                            )
-
-                        # Check that we have a sectionid in the format
-                        # otherwise, raise an error...
-                        if "sectionid" not in format_section:
-                            raise ValueError(
-                                "Cannot find the sectionid in format: "
-                                + str(format_section)
-                            )
-
-                        # We should be able to get the networkid from the feeder data.
-                        _netID = feeder_data[format_feeder.index("networkid")].lower()
-
-                        # First, we store all the feeder data in the network_data structure
-                        self.network_data[_netID] = {}
-                        for key, value in zip(format_feeder, feeder_data):
-                            self.network_data[_netID][key] = value
-
-                        # Then, we create a new entry in feeder_section_mapping
-                        self.feeder_section_mapping[_netID] = []
-
-                        # Lusha
-                        self.feeder_models[_netID] = model
+                # Lusha
+                self.feeder_section_mapping[_netID].append(_sectionID)
 
 
-
-                    # Otherwise, we should have a new section...
-                    else:
-                        # If we have no networkid at this point, raise an error
-                        # Note: If CYME allows sections to be define without
-                        # a network, remove this safety check
-                        #
-                        if _netID is None:
-                            raise ValueError(
-                                "No network ID available when reading line \n" + line
-                            )
-                        # Extract the data for this section
-                        section_data = list(map(lambda x: x.strip(), line.split(",")))
-
-                        # Check length coherence...
-                        if len(section_data) != len(format_section):
-                            raise ValueError(
-                                "Section data length {a} does not match section format length {b}.".format(
-                                    a=len(section_data), b=len(format_section)
-                                )
-                            )
-
-                        # Grab the sectionid
-                        _sectionID = section_data[
-                            format_section.index("sectionid")
-                        ].lower()
-
-                        # Create a new entry in section_phase_mapping
-                        self.section_phase_mapping[_sectionID] = {}
-
-                        # Populate this new entry
-                        for key, value in zip(format_section, section_data):
-                            self.section_phase_mapping[_sectionID][key] = value
-
-                        # And finally, add a new entry to section_feeder_mapping
-                        self.section_feeder_mapping[_sectionID] = _netID
-
-                        # Lusha
-                        self.feeder_section_mapping[_netID].append(_sectionID)
-
-                    # Finally, move on to next line
-                    line = next(self.content)
 
     def parse_lines(self, model=None):
         """
@@ -2595,45 +2985,54 @@ class Reader(AbstractReader):
         #####################################################
         #
         # Open the network file
-        self.get_file_content("network")
+        #self.get_file_content("network")
 
         # Loop over the network file
-        for line in self.content:
-            #print(line)
-            #########################################
-            #                                       #
-            #      OVERHEAD UNBALANCED LINES        #
-            #                                       #
-            #########################################
-            #
-            self.settings = self.update_dict(
-                self.settings,
-                self.parser_helper(
-                    line,
-                    ["overhead_unbalanced_line_settings"],
-                    ["sectionid", "coordx", "coordy", "linecableid", "length"],
-                    mapp_overhead,
-                    {"type": "overhead_unbalanced"},
-                ),
-            )
+        # loop over overhead line
+        self.content = iter(self.file_network_line_overhead)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #      OVERHEAD UNBALANCED LINES        #
+        #                                       #
+        #########################################
+        #
+        self.settings = self.update_dict(
+            self.settings,
+            self.parser_helper(
+                line,
+                ["overhead_unbalanced_line_settings"],
+                ["sectionid", "coordx", "coordy", "linecableid", "length"],
+                mapp_overhead,
+                {"type": "overhead_unbalanced"},
+            ),
+        )
 
-            #########################################
-            #                                       #
-            #        OVERHEAD BALANCED LINES        #
-            #                                       #
-            #########################################
-            #
-            self.settings = self.update_dict(
-                self.settings,
-                self.parser_helper(
-                    line,
-                    ["overhead_line_settings"],
-                    ["sectionid", "coordx", "coordy", "linecableid", "length"],
-                    mapp_overhead,
-                    {"type": "overhead_balanced"},
-                ),
-            )
+        #########################################
+        #                                       #
+        #        OVERHEAD BALANCED LINES        #
+        #                                       #
+        #########################################
+        #
+        self.settings = self.update_dict(
+            self.settings,
+            self.parser_helper(
+                line,
+                ["overhead_line_settings"],
+                ["sectionid", "coordx", "coordy", "linecableid", "length"],
+                mapp_overhead,
+                {"type": "overhead_balanced"},
+            ),
+        )
 
+
+        # loop over overhead by phase line
+        try:
+            self.content = iter(self.file_network_line_overhead_byphase)
+            line = next(self.content)
+
+            print(line)
             #########################################
             #                                       #
             #     OVERHEAD BY PHASE SETTINGS        #
@@ -2663,41 +3062,61 @@ class Reader(AbstractReader):
                     {"type": "overhead_unbalanced"},
                 ),
             )
+        except:
+            pass
 
-            #########################################
-            #                                       #
-            #          UNDERGROUND LINES            #
-            #                                       #
-            #########################################
-            #
-            self.settings = self.update_dict(
-                self.settings,
-                self.parser_helper(
-                    line,
-                    ["underground_line_settings"],
-                    ["sectionid", "coordx", "coordy", "linecableid", "length", "amps"],
-                    mapp_underground,
-                    {"type": "underground"},
-                ),
-            )
+        # loop over underground line
+        self.content = iter(self.file_network_line_underground)
+        line = next(self.content)
 
-            #########################################
-            #                                       #
-            #                SWITCH.                #
-            #                                       #
-            #########################################
-            #
-            self.settings = self.update_dict(
-                self.settings,
-                self.parser_helper(
-                    line,
-                    ["switch_settings"],
-                    ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
-                    mapp_switch,
-                    {"type": "switch"},
-                ),
-            )
+        print(line)
+        #########################################
+        #                                       #
+        #          UNDERGROUND LINES            #
+        #                                       #
+        #########################################
+        #
+        self.settings = self.update_dict(
+            self.settings,
+            self.parser_helper(
+                line,
+                ["underground_line_settings"],
+                ["sectionid", "coordx", "coordy", "linecableid", "length", "amps"],
+                mapp_underground,
+                {"type": "underground"},
+            ),
+        )
 
+
+
+
+        # loop over switch
+        self.content = iter(self.file_network_switch)
+        line = next(self.content)
+        print(line)
+
+        #########################################
+        #                                       #
+        #                SWITCH.                #
+        #                                       #
+        #########################################
+        #
+        self.settings = self.update_dict(
+            self.settings,
+            self.parser_helper(
+                line,
+                ["switch_settings"],
+                ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
+                mapp_switch,
+                {"type": "switch"},
+            ),
+        )
+
+        # loop over sectionalizer
+        try:
+            self.content = iter(self.file_network_sectionalizer)
+            line = next(self.content)
+            print(line)
             #########################################
             #                                       #
             #             SECTIONALIZER.            #
@@ -2714,90 +3133,116 @@ class Reader(AbstractReader):
                     {"type": "sectionalizer"},
                 ),
             )
+        except:
+            pass
 
-            #########################################
-            #                                       #
-            #                 FUSES.                #
-            #                                       #
-            #########################################
-            #
-            self.settings = self.update_dict(
-                self.settings,
-                self.parser_helper(
-                    line,
-                    ["fuse_settings"],
-                    ["sectionid", "coordx", "coordy", "eqid"],
-                    mapp_switch,  # Same as switches
-                    {"type": "fuse"},
-                ),
-            )
+        # loop over fuse
+        self.content = iter(self.file_network_fuse)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #                 FUSES.                #
+        #                                       #
+        #########################################
+        #
+        self.settings = self.update_dict(
+            self.settings,
+            self.parser_helper(
+                line,
+                ["fuse_settings"],
+                ["sectionid", "coordx", "coordy", "eqid"],
+                mapp_switch,  # Same as switches
+                {"type": "fuse"},
+            ),
+        )
 
-            #########################################
-            #                                       #
-            #              RECLOSERS.               #
-            #                                       #
-            #########################################
-            #
-            self.settings = self.update_dict(
-                self.settings,
-                self.parser_helper(
-                    line,
-                    ["recloser_settings"],
-                    ["sectionid", "coordx", "coordy", "eqid"],
-                    mapp_switch,  # Same as switches
-                    {"type": "recloser"},
-                ),
-            )
 
-            #########################################
-            #                                       #
-            #               BREAKER.                #
-            #                                       #
-            #########################################
-            #
-            self.settings = self.update_dict(
-                self.settings,
-                self.parser_helper(
-                    line,
-                    ["breaker_settings"],
-                    ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
-                    mapp_switch,  # Same as switches
-                    {"type": "breaker"},
-                ),
-            )
+        # loop over recloser
+        self.content = iter(self.file_network_recloser)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #              RECLOSERS.               #
+        #                                       #
+        #########################################
+        #
+        self.settings = self.update_dict(
+            self.settings,
+            self.parser_helper(
+                line,
+                ["recloser_settings"],
+                ["sectionid", "coordx", "coordy", "eqid"],
+                mapp_switch,  # Same as switches
+                {"type": "recloser"},
+            ),
+        )
 
-            #########################################
-            #                                       #
-            #         NETWORK PROTECTORS.           #
-            #                                       #
-            #########################################
-            #
-            self.settings = self.update_dict(
-                self.settings,
-                self.parser_helper(
-                    line,
-                    ["network_protector_settings"],
-                    ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
-                    mapp_switch,  # Same as switches
-                    {"type": "network_protector"},
-                ),
-            )
+        # loop over breaker
+        self.content = iter(self.file_network_breaker)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #               BREAKER.                #
+        #                                       #
+        #########################################
+        #
+        self.settings = self.update_dict(
+            self.settings,
+            self.parser_helper(
+                line,
+                ["breaker_settings"],
+                ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
+                mapp_switch,  # Same as switches
+                {"type": "breaker"},
+            ),
+        )
 
-            #########################################
-            #                                       #
-            #              SECTIONS.                #
-            #                                       #
-            #########################################
-            #
-            self.settings = self.update_dict(
-                self.settings,
-                self.parser_helper(
-                    line,
-                    ["section"],
-                    ["sectionid", "fromnodeid", "tonodeid", "phase"],
-                    mapp_section,
-                ),
-            )
+        # loop over network protector
+        # self.content = iter(self.file_network_protector)
+        # line = next(self.content)
+        # while line:
+        #     print(line)
+        #     #########################################
+        #     #                                       #
+        #     #         NETWORK PROTECTORS.           #
+        #     #                                       #
+        #     #########################################
+        #     #
+        #     self.settings = self.update_dict(
+        #         self.settings,
+        #         self.parser_helper(
+        #             line,
+        #             ["network_protector_settings"],
+        #             ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
+        #             mapp_switch,  # Same as switches
+        #             {"type": "network_protector"},
+        #         ),
+        #     )
+        #
+
+
+        # loop over section
+        self.content = iter(self.file_network_section)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #              SECTIONS.                #
+        #                                       #
+        #########################################
+        #
+        self.settings = self.update_dict(
+            self.settings,
+            self.parser_helper(
+                line,
+                ["section"],
+                ["sectionid", "fromnodeid", "tonodeid", "phase"],
+                mapp_section,
+            ),
+        )
 
         #####################################################
         #                                                   #
@@ -2806,246 +3251,283 @@ class Reader(AbstractReader):
         #####################################################
         #
         # Open the equipment file
-        self.get_file_content("equipment")
+        #self.get_file_content("equipment")
 
         # Loop over the equipment file
-        for line in self.content:
+        #for line in self.content:
             #print(line)
-            #########################################
-            #                                       #
-            #                 LINES.                #
-            #                                       #
-            #########################################
-            #
-            self.balanced_lines.update(
-                self.parser_helper(
-                    line,
-                    ["line"],
-                    [
-                        "id",
-                        "phasecondid",
-                        "neutralcondid",
-                        "spacingid",
-                        "amps",
-                        "r1",
-                        "r0",
-                        "x1",
-                        "x0",
-                        "b1",
-                        "b0",
-                    ],
-                    mapp_line,
-                    {"type": "balanced_line"},
-                )
+        self.content = iter(self.file_equipment_line)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #                 LINES.                #
+        #                                       #
+        #########################################
+        #
+        self.balanced_lines.update(
+            self.parser_helper(
+                line,
+                ["line"],
+                [
+                    "id",
+                    "phasecondid",
+                    "neutralcondid",
+                    "spacingid",
+                    "amps",
+                    "r1",
+                    "r0",
+                    "x1",
+                    "x0",
+                    "b1",
+                    "b0",
+                ],
+                mapp_line,
+                {"type": "balanced_line"},
             )
+        )
 
-            #########################################
-            #                                       #
-            #          UNBALANCED LINES.            #
-            #                                       #
-            #########################################
-            #
-            self.unbalanced_lines.update(
-                self.parser_helper(
-                    line,
-                    ["unbalanced_line"],
-                    [
-                        "id",
-                        "condid_a",
-                        "condid_b",
-                        "condid_c",
-                        "condid_n",
-                        "condid_n1",
-                        "condid_n2",
-                        "spacingid",
-                        "ra",
-                        "rb",
-                        "rc",
-                        "xa",
-                        "xb",
-                        "xc",
-                        "ba",
-                        "bb",
-                        "bc",
-                        "mutualresistanceab",
-                        "mutualresistancebc",
-                        "mutualresistanceca",
-                        "mutualreactanceab",
-                        "mutualreactancebc",
-                        "mutualreactanceca",
-                    ],
-                    mapp_line_unbalanced,
-                    {"type": "unbalanced_line"},
-                )
+        self.content = iter(self.file_equipment_line_unbalanced)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #          UNBALANCED LINES.            #
+        #                                       #
+        #########################################
+        #
+        self.unbalanced_lines.update(
+            self.parser_helper(
+                line,
+                ["unbalanced_line"],
+                [
+                    "id",
+                    "condid_a",
+                    "condid_b",
+                    "condid_c",
+                    "condid_n",
+                    "condid_n1",
+                    "condid_n2",
+                    "spacingid",
+                    "ra",
+                    "rb",
+                    "rc",
+                    "xa",
+                    "xb",
+                    "xc",
+                    "ba",
+                    "bb",
+                    "bc",
+                    "mutualresistanceab",
+                    "mutualresistancebc",
+                    "mutualresistanceca",
+                    "mutualreactanceab",
+                    "mutualreactancebc",
+                    "mutualreactanceca",
+                ],
+                mapp_line_unbalanced,
+                {"type": "unbalanced_line"},
             )
+        )
 
-            #########################################
-            #                                       #
-            #             SPACING TABLE             #
-            #                                       #
-            #########################################
-            #
-            self.spacings.update(
-                self.parser_helper(
-                    line,
-                    ["spacing_table"],
-                    [
-                        "id",
-                        "posofcond1_x",
-                        "posofcond1_y",
-                        "posofcond2_x",
-                        "posofcond2_y",
-                        "posofcond3_x",
-                        "posofcond3_y",
-                        "posofneutralcond_x",
-                        "posofneutralcond_y",
-                        "posofneutralcond_n2_x",
-                        "posofneutralcond_n2_y",
-                    ],
-                    mapp_spacing,
-                )
+        self.content = iter(self.file_equipment_spacing)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #             SPACING TABLE             #
+        #                                       #
+        #########################################
+        #
+        self.spacings.update(
+            self.parser_helper(
+                line,
+                ["spacing_table"],
+                [
+                    "id",
+                    "posofcond1_x",
+                    "posofcond1_y",
+                    "posofcond2_x",
+                    "posofcond2_y",
+                    "posofcond3_x",
+                    "posofcond3_y",
+                    "posofneutralcond_x",
+                    "posofneutralcond_y",
+                    "posofneutralcond_n2_x",
+                    "posofneutralcond_n2_y",
+                ],
+                mapp_spacing,
             )
+        )
 
-            #########################################
-            #                                       #
-            #              CONDUCTOR                #
-            #                                       #
-            #########################################
-            #
-            self.conductors.update(
-                self.parser_helper(
-                    line,
-                    ["conductor"],
-                    ["id", "diameter", "gmr", "r25", "amps", "withstandrating"],
-                    mapp_conductor,
-                )
-            )
 
-            #########################################
-            #                                       #
-            #       CONCENTRIC NEUTRAL CABLE        #
-            #                                       #
-            #########################################
-            #
-            self.concentric_neutral_cable.update(
-                self.parser_helper(
-                    line,
-                    ["concentric_neutral_cable"],
-                    [
-                        "id",
-                        "r1",
-                        "r0",
-                        "x1",
-                        "x0",
-                        "amps",
-                        "phasecondid",
-                        "neutralcondid",
-                    ],
-                    mapp_concentric_neutral_cable,
-                )
+        self.content = iter(self.file_equipment_conductor)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #              CONDUCTOR                #
+        #                                       #
+        #########################################
+        #
+        self.conductors.update(
+            self.parser_helper(
+                line,
+                ["conductor"],
+                ["id", "diameter", "gmr", "r25", "amps", "withstandrating"],
+                mapp_conductor,
             )
+        )
 
-            #########################################
-            #                                       #
-            #                 CABLE                 #
-            #                                       #
-            #########################################
-            #
-            self.cables.update(
-                self.parser_helper(
-                    line,
-                    ["cable"],
-                    ["id", "r1", "r0", "x1", "x0", "amps"],
-                    mapp_concentric_neutral_cable,
-                )
+        self.content = iter(self.file_equipment_cable_concentric_neutral)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #       CONCENTRIC NEUTRAL CABLE        #
+        #                                       #
+        #########################################
+        #
+        self.concentric_neutral_cable.update(
+            self.parser_helper(
+                line,
+                ["concentric_neutral_cable"],
+                [
+                    "id",
+                    "r1",
+                    "r0",
+                    "x1",
+                    "x0",
+                    "amps",
+                    "phasecondid",
+                    "neutralcondid",
+                ],
+                mapp_concentric_neutral_cable,
             )
+        )
 
-            #########################################
-            #                                       #
-            #               SWITCHES                #
-            #                                       #
-            #########################################
-            #
-            self.switches.update(
-                self.parser_helper(
-                    line, ["switch"], ["id", "amps", "kvll"], mapp_switch_eq
-                )
+        self.content = iter(self.file_equipment_cable)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #                 CABLE                 #
+        #                                       #
+        #########################################
+        #
+        self.cables.update(
+            self.parser_helper(
+                line,
+                ["cable"],
+                ["id", "r1", "r0", "x1", "x0", "amps"],
+                mapp_concentric_neutral_cable,
             )
+        )
 
-            #########################################
-            #                                       #
-            #                 FUSES                 #
-            #                                       #
-            #########################################
-            #
-            self.fuses.update(
-                self.parser_helper(
-                    line,
-                    ["fuse"],
-                    ["id", "amps", "kvll", "interruptingrating"],
-                    mapp_network_protectors,  # Same as network protectors
-                )
+        self.content = iter(self.file_equipment_switch)
+        line = next(self.content)
+        #########################################
+        #                                       #
+        #               SWITCHES                #
+        #                                       #
+        #########################################
+        #
+        self.switches.update(
+            self.parser_helper(
+                line, ["switch"], ["id", "amps", "kvll"], mapp_switch_eq
             )
+        )
 
-            #########################################
-            #                                       #
-            #             RECLOSERS                 #
-            #                                       #
-            #########################################
-            #
-            self.reclosers.update(
-                self.parser_helper(
-                    line,
-                    ["recloser"],
-                    ["id", "amps", "kvll", "interruptingrating"],
-                    mapp_network_protectors,  # Same as network protectors
-                )
+        self.content = iter(self.file_equipment_fuse)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #                 FUSES                 #
+        #                                       #
+        #########################################
+        #
+        self.fuses.update(
+            self.parser_helper(
+                line,
+                ["fuse"],
+                ["id", "amps", "kvll", "interruptingrating"],
+                mapp_network_protectors,  # Same as network protectors
             )
+        )
 
-            #########################################
-            #                                       #
-            #          SECTIONALIZERS               #
-            #                                       #
-            #########################################
-            #
-            self.sectionalizers.update(
-                self.parser_helper(
-                    line,
-                    ["sectionalizer"],
-                    ["id", "amps", "kvll", "interruptingrating"],
-                    mapp_sectionalizers,
-                )
-            )
 
-            #########################################
-            #                                       #
-            #               BREAKERS                #
-            #                                       #
-            #########################################
-            #
-            self.breakers.update(
-                self.parser_helper(
-                    line,
-                    ["breaker"],
-                    ["id", "amps", "kvll", "interruptingrating"],
-                    mapp_network_protectors,  # Same as network protectors
-                )
+        self.content = iter(self.file_equipment_recloser)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #             RECLOSERS                 #
+        #                                       #
+        #########################################
+        #
+        self.reclosers.update(
+            self.parser_helper(
+                line,
+                ["recloser"],
+                ["id", "amps", "kvll", "interruptingrating"],
+                mapp_network_protectors,  # Same as network protectors
             )
+        )
 
-            #########################################
-            #                                       #
-            #         NETWORK PROTECTORS            #
-            #                                       #
-            #########################################
-            #
-            self.network_protectors.update(
-                self.parser_helper(
-                    line,
-                    ["network_protector"],
-                    ["id", "amps", "kvll", "interruptingrating"],
-                    mapp_network_protectors,
-                )
+
+        self.content = iter(self.file_equipment_sectionalizer)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #          SECTIONALIZERS               #
+        #                                       #
+        #########################################
+        #
+        self.sectionalizers.update(
+            self.parser_helper(
+                line,
+                ["sectionalizer"],
+                ["id", "amps", "kvll", "interruptingrating"],
+                mapp_sectionalizers,
             )
+        )
+
+
+        self.content = iter(self.file_equipment_breaker)
+        line = next(self.content)
+        print(line)
+        #########################################
+        #                                       #
+        #               BREAKERS                #
+        #                                       #
+        #########################################
+        #
+        self.breakers.update(
+            self.parser_helper(
+                line,
+                ["breaker"],
+                ["id", "amps", "kvll", "interruptingrating"],
+                mapp_network_protectors,  # Same as network protectors
+            )
+        )
+
+
+        # #########################################
+        # #                                       #
+        # #         NETWORK PROTECTORS            #
+        # #                                       #
+        # #########################################
+        # #
+        # self.network_protectors.update(
+        #     self.parser_helper(
+        #         line,
+        #         ["network_protector"],
+        #         ["id", "amps", "kvll", "interruptingrating"],
+        #         mapp_network_protectors,
+        #     )
+        # )
 
         #####################################################
         #                                                   #
@@ -3137,8 +3619,12 @@ class Reader(AbstractReader):
                 new_line["length"] = 0.0001
                 #pass
 
-            feeder_name = self.section_feeder_mapping[sectionID]
-            new_line["feeder_name"] = feeder_name
+            try:
+                feeder_name = self.section_feeder_mapping[sectionID]
+                new_line["feeder_name"] = feeder_name
+            except:
+                pass
+
             try:
                 new_line["substation_name"] = self.feeder_sub_mapping[feeder_name]
             except:
@@ -3269,13 +3755,20 @@ class Reader(AbstractReader):
                                 False,
                             )
                         new_line["wires"].append(api_wire)
-                    api_line = Line(model)
-                    for k, v in new_line.items():
-                        setattr(api_line, k, v)
-                    if not sectionID in self.section_duplicates:
-                        self.section_duplicates[sectionID] = []
-                    self.section_duplicates[sectionID].append(api_line)
-                    continue
+
+                    new_line["linecableid"] = "default_"+"_".join(phases)
+                    settings["type"] = "default_connection"
+                    new_line["nameclass"] = new_line["linecableid"]
+                    new_line["line_type"] = "default_connection"
+                    new_line["amps"] = float(10000)
+
+                    # api_line = Line(model)
+                    # for k, v in new_line.items():
+                    #     setattr(api_line, k, v)
+                    # if not sectionID in self.section_duplicates:
+                    #     self.section_duplicates[sectionID] = []
+                    # self.section_duplicates[sectionID].append(api_line)
+                    # continue
 
                 # Sectionalizer
                 elif "sectionalizer" in settings["type"]:
@@ -3354,15 +3847,22 @@ class Reader(AbstractReader):
                                 True,
                             )
                         new_line["wires"].append(api_wire)
-                    api_line = Line(model)
-                    for k, v in new_line.items():
-                        setattr(api_line, k, v)
 
-                    if not sectionID in self.section_duplicates:
-                        self.section_duplicates[sectionID] = []
-                    self.section_duplicates[sectionID].append(api_line)
+                    new_line["linecableid"] = "default_"+"_".join(phases)
+                    settings["type"] = "default_connection"
+                    new_line["nameclass"] = new_line["linecableid"]
+                    new_line["line_type"] = "default_connection"
+                    new_line["amps"] = float(10000)
 
-                    continue
+                    # api_line = Line(model)
+                    # for k, v in new_line.items():
+                    #     setattr(api_line, k, v)
+                    #
+                    # if not sectionID in self.section_duplicates:
+                    #     self.section_duplicates[sectionID] = []
+                    # self.section_duplicates[sectionID].append(api_line)
+                    #
+                    # continue
 
                 # Fuse
                 elif "fuse" in settings["type"]:
@@ -3440,13 +3940,21 @@ class Reader(AbstractReader):
                             )
 
                         new_line["wires"].append(api_wire)
-                    api_line = Line(model)
-                    for k, v in new_line.items():
-                        setattr(api_line, k, v)
-                    if not sectionID in self.section_duplicates:
-                        self.section_duplicates[sectionID] = []
-                    self.section_duplicates[sectionID].append(api_line)
-                    continue
+
+                    new_line["linecableid"] = "default_"+"_".join(phases)
+                    settings["type"] = "default_connection"
+                    new_line["nameclass"] = new_line["linecableid"]
+                    new_line["line_type"] = "default_connection"
+                    new_line["amps"] = float(10000)
+
+
+                    # api_line = Line(model)
+                    # for k, v in new_line.items():
+                    #     setattr(api_line, k, v)
+                    # if not sectionID in self.section_duplicates:
+                    #     self.section_duplicates[sectionID] = []
+                    # self.section_duplicates[sectionID].append(api_line)
+                    # continue
 
                 # recloser
                 elif "recloser" in settings["type"]:
@@ -3525,14 +4033,22 @@ class Reader(AbstractReader):
                                 False,
                             )
                         new_line["wires"].append(api_wire)
-                    api_line = Line(model)
-                    for k, v in new_line.items():
-                        setattr(api_line, k, v)
 
-                    if not sectionID in self.section_duplicates:
-                        self.section_duplicates[sectionID] = []
-                    self.section_duplicates[sectionID].append(api_line)
-                    continue
+                    new_line["linecableid"] = "default_"+"_".join(phases)
+                    settings["type"] = "default_connection"
+                    new_line["nameclass"] = new_line["linecableid"]
+                    new_line["line_type"] = "default_connection"
+                    new_line["amps"] = float(10000)
+
+
+                    # api_line = Line(model)
+                    # for k, v in new_line.items():
+                    #     setattr(api_line, k, v)
+                    #
+                    # if not sectionID in self.section_duplicates:
+                    #     self.section_duplicates[sectionID] = []
+                    # self.section_duplicates[sectionID].append(api_line)
+                    # continue
 
                 # breaker
                 elif "breaker" in settings["type"]:
@@ -3610,14 +4126,22 @@ class Reader(AbstractReader):
                             )
 
                         new_line["wires"].append(api_wire)
-                    api_line = Line(model)
-                    for k, v in new_line.items():
-                        setattr(api_line, k, v)
 
-                    if not sectionID in self.section_duplicates:
-                        self.section_duplicates[sectionID] = []
-                    self.section_duplicates[sectionID].append(api_line)
-                    continue
+                    new_line["linecableid"] = "default_"+"_".join(phases)
+                    settings["type"] = "default_connection"
+                    new_line["nameclass"] = new_line["linecableid"]
+                    new_line["line_type"] = "default_connection"
+                    new_line["amps"] = float(10000)
+
+
+                    # api_line = Line(model)
+                    # for k, v in new_line.items():
+                    #     setattr(api_line, k, v)
+                    #
+                    # if not sectionID in self.section_duplicates:
+                    #     self.section_duplicates[sectionID] = []
+                    # self.section_duplicates[sectionID].append(api_line)
+                    # continue
 
                 # Network Protectors
                 elif "network_protector" in settings["type"]:
@@ -3702,14 +4226,119 @@ class Reader(AbstractReader):
                             )
                         new_line["wires"].append(api_wire)
 
+                    new_line["linecableid"] = "default_"+"_".join(phases)
+                    settings["type"] = "default_connection"
+                    new_line["nameclass"] = new_line["linecableid"]
+                    new_line["line_type"] = "default_connection"
+                    new_line["amps"] = float(10000)
+
                     # Create the line object
+                    # api_line = Line(model)
+                    # for k, v in new_line.items():
+                    #     setattr(api_line, k, v)
+                    # if not sectionID in self.section_duplicates:
+                    #     self.section_duplicates[sectionID] = []
+                    # self.section_duplicates[sectionID].append(api_line)
+                    # continue
+
+            # for switch, breaker, fuse, etc
+            try:
+                if new_line["line_type"] == "default_connection":
+                    # impedance_matrix = None
+                    # # In this case, we build the impedance matrix from Z+ and Z0 in the following way:
+                    # #         __________________________
+                    # #        | Z0+2*Z+  Z0-Z+   Z0-Z+   |
+                    # # Z= 1/3 | Z0-Z+    Z0+2*Z+ Z0-Z+   |
+                    # #        | Z0-Z+    Z0-Z+   Z0+2*Z+ |
+                    # #         --------------------------
+                    try:
+                        coeff = 10 ** -3
+                        r0 = 0.00001
+                        x0 = 0.00001
+                        r1 = 0.00001
+                        x1 = 0.00001
+                        # One phase line
+                        if len(phases) == 1:
+
+                            impedance_matrix = [
+                                [
+                                    1.0
+                                    / 3.0
+                                    * coeff
+                                    * complex(
+                                        float(r0), float(x0)
+                                    )
+                                ]
+                            ]
+
+                        # Two phase line
+                        elif len(phases) == 2:
+
+                            a = (
+                                    1.0
+                                    / 3.0
+                                    * coeff
+                                    * complex(
+                                2 * float(r1) + float(r0),
+                                2 * float(x1) + float(x0),
+                            )
+                            )
+                            b = (
+                                    1.0
+                                    / 3.0
+                                    * coeff
+                                    * complex(
+                                float(r0) - float(r1),
+                                float(x0) - float(x1),
+                            )
+                            )
+                            impedance_matrix = [[a, b], [b, a]]
+
+                        # Three phase line
+                        else:
+
+                            a = (
+                                    1.0
+                                    / 3.0
+                                    * coeff
+                                    * complex(
+                                2 * float(r1) + float(r0),
+                                2 * float(x1) + float(x0),
+                            )
+                            )
+                            b = (
+                                    1.0
+                                    / 3.0
+                                    * coeff
+                                    * complex(
+                                float(r0) - float(r1),
+                                float(x0) - float(x1),
+                            )
+                            )
+                            impedance_matrix = [[a, b, b], [b, a, b], [b, b, a]]
+                    except:
+                        pass
+
+                    try:
+                        new_line["impedance_matrix"] = impedance_matrix
+                    except:
+                        pass
+
                     api_line = Line(model)
                     for k, v in new_line.items():
                         setattr(api_line, k, v)
+
+                    # Append the line DiTTo object to the list of DiTTo lines
+                    self._lines.append(api_line)
                     if not sectionID in self.section_duplicates:
                         self.section_duplicates[sectionID] = []
                     self.section_duplicates[sectionID].append(api_line)
+
+                    section_dict[sectionID] = settings["type"]
+
                     continue
+            except:
+                pass
 
             line_data = None
             # If we have a linecableid for the current section
@@ -3718,14 +4347,14 @@ class Reader(AbstractReader):
                 if settings["linecableid"] in self.balanced_lines:
                     # Cache the line data
                     line_data = self.balanced_lines[settings["linecableid"]]
-                if settings["linecableid"] in self.unbalanced_lines:
+                elif settings["linecableid"] in self.unbalanced_lines:
                     # Cache the line data
                     line_data = self.unbalanced_lines[settings["linecableid"]]
-                if settings["linecableid"] in self.concentric_neutral_cable:
+                elif settings["linecableid"] in self.concentric_neutral_cable:
                     # Cache the line data
                     line_data = self.concentric_neutral_cable[settings["linecableid"]]
                     line_data["type"] = "balanced_line"
-                if settings["linecableid"] in self.cables:
+                elif settings["linecableid"] in self.cables:
                     logger.debug("cables {}".format(sectionID))
                     line_data = self.cables[settings["linecableid"]]
                     line_data["type"] = "balanced_line"
@@ -3735,12 +4364,12 @@ class Reader(AbstractReader):
                     missing_line.write('Section ID:' + sectionID + ' Cable ID:'+settings["linecableid"]+'\n')
                     # Lusha
                     # add cable information in equipment.txt: 1P1/0ACSR_13.8KV, 1P4/0CU_13.8KV, 3P#2ALP_4.33KV
+                    # add cable 23256_CED
 
 
             # We might have a device number instead if we are dealing with BY PHASE settings
             #
             # TODO: Decide if I should remove this or not...
-            #
             elif "devicenumber" in settings:
                 # if self.balanced_lines.has_key(settings['devicenumber']):
                 #       #Cache the line data
@@ -3748,68 +4377,74 @@ class Reader(AbstractReader):
                 # elif self.unbalanced_lines.has_key(settings['devicenumber']):
                 #       #Cache the line data
                 #       line_data=self.unbalanced_lines[settings['devicenumber']]
-                if settings["devicenumber"] in self.concentric_neutral_cable:
-                    line_data = self.concentric_neutral_cable[settings["devicenumber"]]
-                    line_data["type"] = "balanced_line"
+                try:
+                    if settings["devicenumber"] in self.concentric_neutral_cable:
+                        line_data = self.concentric_neutral_cable[settings["devicenumber"]]
+                        line_data["type"] = "balanced_line"
+                except:
+                    pass
+
                 # Lusha
                 # configuration for unblanced by phase overhead lines
                 if line_data is None:
-                    line_data = {}
-                    condID_a = settings["condid_a"]
-                    condID_b = settings["condid_b"]
-                    condID_c = settings["condid_c"]
-                    condID_n1 = settings["condid_n1"]
-                    condID_n2 = settings["condid_n2"]
-                    spacingid = settings["spacingid"]
-                    length = settings["length"]
+                    try:
+                        line_data = {}
+                        condID_a = settings["condid_a"]
+                        condID_b = settings["condid_b"]
+                        condID_c = settings["condid_c"]
+                        condID_n1 = settings["condid_n1"]
+                        condID_n2 = settings["condid_n2"]
+                        spacingid = settings["spacingid"]
+                        length = settings["length"]
 
-                    # ["id", "diameter", "gmr", "r25", "amps", "withstandrating"],
-                    if condID_a != "NONE":
-                        condID_a_diameter = self.conductors[condID_a]['diameter']
-                        condID_a_r25 = self.conductors[condID_a]['r25']
-                        condID_a_gmr = self.conductors[condID_a]['gmr']
-                        line_data['condid_a'] = condID_a
-                        line_data['ra'] = condID_a_r25
-                        line_data['xa'] = 0.12134*math.log10(float(condID_a_diameter)/float(condID_a_gmr))
-                    if condID_b != "NONE":
-                        condID_b_diameter = self.conductors[condID_b]['diameter']
-                        condID_b_r25 = self.conductors[condID_b]['r25']
-                        condID_b_gmr = self.conductors[condID_b]['gmr']
-                        line_data['condid_b'] = condID_b
-                        line_data['rb'] = condID_b_r25
-                        line_data['xb'] = 0.12134*math.log10(float(condID_b_diameter)/float(condID_b_gmr))
-                    if condID_c != "NONE":
-                        condID_c_diameter = self.conductors[condID_c]['diameter']
-                        condID_c_r25 = self.conductors[condID_c]['r25']
-                        condID_c_gmr = self.conductors[condID_c]['gmr']
-                        line_data['condid_c'] = condID_c
-                        line_data['rc'] = condID_c_r25
-                        line_data['xc'] = 0.12134*math.log10(float(condID_c_diameter)/float(condID_c_gmr))
-                    if condID_n1 != "NONE":
-                        condID_n1_diameter = self.conductors[condID_n1]['diameter']
-                        condID_n1_r25 = self.conductors[condID_n1]['r25']
-                        condID_n1_gmr = self.conductors[condID_n1]['gmr']
-                        line_data['condid_n1'] = condID_n1
-                    if condID_n2 != "NONE":
-                        condID_n2_diameter = self.conductors[condID_n2]['diameter']
-                        condID_n2_r25 = self.conductors[condID_n2]['r25']
-                        condID_n2_gmr = self.conductors[condID_n2]['gmr']
-                        line_data['condid_n2'] = condID_n2
+                        # ["id", "diameter", "gmr", "r25", "amps", "withstandrating"],
+                        if condID_a != "NONE":
+                            condID_a_diameter = self.conductors[condID_a]['diameter']
+                            condID_a_r25 = self.conductors[condID_a]['r25']
+                            condID_a_gmr = self.conductors[condID_a]['gmr']
+                            line_data['condid_a'] = condID_a
+                            line_data['ra'] = condID_a_r25
+                            line_data['xa'] = 0.12134*math.log10(float(condID_a_diameter)/float(condID_a_gmr))
+                        if condID_b != "NONE":
+                            condID_b_diameter = self.conductors[condID_b]['diameter']
+                            condID_b_r25 = self.conductors[condID_b]['r25']
+                            condID_b_gmr = self.conductors[condID_b]['gmr']
+                            line_data['condid_b'] = condID_b
+                            line_data['rb'] = condID_b_r25
+                            line_data['xb'] = 0.12134*math.log10(float(condID_b_diameter)/float(condID_b_gmr))
+                        if condID_c != "NONE":
+                            condID_c_diameter = self.conductors[condID_c]['diameter']
+                            condID_c_r25 = self.conductors[condID_c]['r25']
+                            condID_c_gmr = self.conductors[condID_c]['gmr']
+                            line_data['condid_c'] = condID_c
+                            line_data['rc'] = condID_c_r25
+                            line_data['xc'] = 0.12134*math.log10(float(condID_c_diameter)/float(condID_c_gmr))
+                        if condID_n1 != "NONE":
+                            condID_n1_diameter = self.conductors[condID_n1]['diameter']
+                            condID_n1_r25 = self.conductors[condID_n1]['r25']
+                            condID_n1_gmr = self.conductors[condID_n1]['gmr']
+                            line_data['condid_n1'] = condID_n1
+                        if condID_n2 != "NONE":
+                            condID_n2_diameter = self.conductors[condID_n2]['diameter']
+                            condID_n2_r25 = self.conductors[condID_n2]['r25']
+                            condID_n2_gmr = self.conductors[condID_n2]['gmr']
+                            line_data['condid_n2'] = condID_n2
 
-                    if condID_a != "NONE" and condID_b != "NONE":
-                        line_data["mutualresistanceab"] =0
-                        line_data["mutualreactanceab"] = 0
-                    if condID_b != "NONE" and condID_c != "NONE":
-                        line_data["mutualresistancebc"] =0
-                        line_data["mutualreactancebc"] = 0
-                    if condID_c != "NONE" and condID_a != "NONE":
-                        line_data["mutualresistanceca"] =0
-                        line_data["mutualreactanceca"] = 0
+                        if condID_a != "NONE" and condID_b != "NONE":
+                            line_data["mutualresistanceab"] =0
+                            line_data["mutualreactanceab"] = 0
+                        if condID_b != "NONE" and condID_c != "NONE":
+                            line_data["mutualresistancebc"] =0
+                            line_data["mutualreactancebc"] = 0
+                        if condID_c != "NONE" and condID_a != "NONE":
+                            line_data["mutualresistanceca"] =0
+                            line_data["mutualreactanceca"] = 0
 
-                    line_data['id'] = settings["devicenumber"]
-                    line_data['spacingid'] = spacingid
-                    line_data['type'] = 'unbalanced_line'
-
+                        line_data['id'] = settings["devicenumber"]
+                        line_data['spacingid'] = spacingid
+                        line_data['type'] = 'unbalanced_line'
+                    except:
+                        pass
                 # Lusha
                 # use ConductorID and spaceID to calculate
                 # remove this part to solve no GMR issue
@@ -3821,146 +4456,152 @@ class Reader(AbstractReader):
                 # ):
                 #     if "condid_n" in settings or "condid_n1" in settings:
                 #         line_data = {"type": "unbalanced_spacing_conf"}
-                if line_data == None:
-                    print("Device number:" + settings["devicenumber"])
-                    print("WARNING:: Skipping Line {} !".format(sectionID))
-                    missing_line.write('Section ID:' + sectionID + ' Device Number:'+settings["devicenumber"]+'\n')
+
+
+                # if line_data == None:
+                #     print("Device number:" + settings["devicenumber"])
+                #     print("WARNING:: Skipping Line {} !".format(sectionID))
+                #     missing_line.write('Section ID:' + sectionID + ' Device Number:'+settings["devicenumber"]+'\n')
 
 
             if line_data is None:
                 # Lusha
                 # for section line without specific overhead/underground type, generate a simple one
-                new_line["linecableid"] = "default_"+"_".join(phases)
-                settings["type"] = "default_connection"
-                new_line["nameclass"] = new_line["linecableid"]
-                new_line["line_type"] = "default_connection"
-                impedance_matrix = None
-                # In this case, we build the impedance matrix from Z+ and Z0 in the following way:
-                #         __________________________
-                #        | Z0+2*Z+  Z0-Z+   Z0-Z+   |
-                # Z= 1/3 | Z0-Z+    Z0+2*Z+ Z0-Z+   |
-                #        | Z0-Z+    Z0-Z+   Z0+2*Z+ |
-                #         --------------------------
-                try:
-                    coeff = 10 ** -3
-                    r0 = 0.00001
-                    x0 = 0.00001
-                    r1 = 0.00001
-                    x1 = 0.00001
-                    # One phase line
-                    if len(phases) == 1:
-
-                        impedance_matrix = [
-                            [
-                                1.0
-                                / 3.0
-                                * coeff
-                                * complex(
-                                    float(r0), float(x0)
-                                )
-                            ]
-                        ]
-
-                    # Two phase line
-                    elif len(phases) == 2:
-
-                        a = (
-                            1.0
-                            / 3.0
-                            * coeff
-                            * complex(
-                                2 * float(r1) + float(r0),
-                                2 * float(x1) + float(x0),
-                            )
-                        )
-                        b = (
-                            1.0
-                            / 3.0
-                            * coeff
-                            * complex(
-                                float(r0) - float(r1),
-                                float(x0) - float(x1),
-                            )
-                        )
-                        impedance_matrix = [[a, b], [b, a]]
-
-                    # Three phase line
-                    else:
-
-                        a = (
-                            1.0
-                            / 3.0
-                            * coeff
-                            * complex(
-                                2 * float(r1) + float(r0),
-                                2 * float(x1) + float(x0),
-                            )
-                        )
-                        b = (
-                            1.0
-                            / 3.0
-                            * coeff
-                            * complex(
-                                float(r0) - float(r1),
-                                float(x0) - float(x1),
-                            )
-                        )
-                        impedance_matrix = [[a, b, b], [b, a, b], [b, b, a]]
-                except:
-                    pass
-
-                new_line["impedance_matrix"] = impedance_matrix
-
-                # In the balanced case, we should have two conductor IDs: One for the phases and one for the neutral
-                # Handle the Phase conductors first:
-
-                conductor_data = {}
-                spacing_data = {}
-
-                # Loop over the phases and create the wires
-                new_line["wires"] = []
-                for phase in phases:
-                    api_wire = self.configure_wire(
-                        model,
-                        conductor_data,
-                        spacing_data,
-                        phase,
-                        False,
-                        False,
-                        False,
-                        False,
-                        False,
-                        False,
-                        False,
-                    )
-                    new_line["wires"].append(api_wire)
-
-                # Handle the neutral conductor
-
-                conductor_data = {}
-
-                # In addition, we might have some information on the spacings
-                spacing_data = {}
-
-                api_wire = self.configure_wire(
-                    model,
-                    conductor_data,
-                    spacing_data,
-                    "N",
-                    False,
-                    False,
-                    False,
-                    False,
-                    False,
-                    False,
-                    False,
-                )
-                new_line["wires"].append(api_wire)
-
-                if not "phase" in settings.keys():
-                    logger.warning("WARNING:: Skipping Line {} !".format(sectionID))
-                # print("WARNING:: Skipping Line {} !".format(sectionID))
-                #missing_line.write('Section ID:' + sectionID  + '\n')
+                # 2024/09 remove this to avoid duplicate line for transformer  and load section
+                logger.info("section without line information" + str(sectionID))
+                # new_line["linecableid"] = "default_"+"_".join(phases)
+                # settings["type"] = "default_connection"
+                # new_line["nameclass"] = new_line["linecableid"]
+                # new_line["line_type"] = "default_connection"
+                # new_line["amps"] = float(10000)
+                #
+                # impedance_matrix = None
+                # # In this case, we build the impedance matrix from Z+ and Z0 in the following way:
+                # #         __________________________
+                # #        | Z0+2*Z+  Z0-Z+   Z0-Z+   |
+                # # Z= 1/3 | Z0-Z+    Z0+2*Z+ Z0-Z+   |
+                # #        | Z0-Z+    Z0-Z+   Z0+2*Z+ |
+                # #         --------------------------
+                # try:
+                #     coeff = 10 ** -3
+                #     r0 = 0.00001
+                #     x0 = 0.00001
+                #     r1 = 0.00001
+                #     x1 = 0.00001
+                #     # One phase line
+                #     if len(phases) == 1:
+                #
+                #         impedance_matrix = [
+                #             [
+                #                 1.0
+                #                 / 3.0
+                #                 * coeff
+                #                 * complex(
+                #                     float(r0), float(x0)
+                #                 )
+                #             ]
+                #         ]
+                #
+                #     # Two phase line
+                #     elif len(phases) == 2:
+                #
+                #         a = (
+                #             1.0
+                #             / 3.0
+                #             * coeff
+                #             * complex(
+                #                 2 * float(r1) + float(r0),
+                #                 2 * float(x1) + float(x0),
+                #             )
+                #         )
+                #         b = (
+                #             1.0
+                #             / 3.0
+                #             * coeff
+                #             * complex(
+                #                 float(r0) - float(r1),
+                #                 float(x0) - float(x1),
+                #             )
+                #         )
+                #         impedance_matrix = [[a, b], [b, a]]
+                #
+                #     # Three phase line
+                #     else:
+                #
+                #         a = (
+                #             1.0
+                #             / 3.0
+                #             * coeff
+                #             * complex(
+                #                 2 * float(r1) + float(r0),
+                #                 2 * float(x1) + float(x0),
+                #             )
+                #         )
+                #         b = (
+                #             1.0
+                #             / 3.0
+                #             * coeff
+                #             * complex(
+                #                 float(r0) - float(r1),
+                #                 float(x0) - float(x1),
+                #             )
+                #         )
+                #         impedance_matrix = [[a, b, b], [b, a, b], [b, b, a]]
+                # except:
+                #     pass
+                #
+                # new_line["impedance_matrix"] = impedance_matrix
+                #
+                # # In the balanced case, we should have two conductor IDs: One for the phases and one for the neutral
+                # # Handle the Phase conductors first:
+                #
+                # conductor_data = {}
+                # spacing_data = {}
+                #
+                # # Loop over the phases and create the wires
+                # new_line["wires"] = []
+                # for phase in phases:
+                #     api_wire = self.configure_wire(
+                #         model,
+                #         conductor_data,
+                #         spacing_data,
+                #         phase,
+                #         False,
+                #         False,
+                #         False,
+                #         False,
+                #         False,
+                #         False,
+                #         False,
+                #     )
+                #     new_line["wires"].append(api_wire)
+                #
+                # # Handle the neutral conductor
+                #
+                # conductor_data = {}
+                #
+                # # In addition, we might have some information on the spacings
+                # spacing_data = {}
+                #
+                # api_wire = self.configure_wire(
+                #     model,
+                #     conductor_data,
+                #     spacing_data,
+                #     "N",
+                #     False,
+                #     False,
+                #     False,
+                #     False,
+                #     False,
+                #     False,
+                #     False,
+                # )
+                # new_line["wires"].append(api_wire)
+                #
+                # if not "phase" in settings.keys():
+                #     logger.warning("WARNING:: Skipping Line {} !".format(sectionID))
+                # # print("WARNING:: Skipping Line {} !".format(sectionID))
+                # #missing_line.write('Section ID:' + sectionID  + '\n')
             else:
                 # Lusha
                 # add linecode for each line
@@ -4730,17 +5371,20 @@ class Reader(AbstractReader):
                 except:
                     pass
 
-            api_line = Line(model)
-            for k, v in new_line.items():
-                setattr(api_line, k, v)
 
-            # Append the line DiTTo object to the list of DiTTo lines
-            self._lines.append(api_line)
-            if not sectionID in self.section_duplicates:
-                self.section_duplicates[sectionID] = []
-            self.section_duplicates[sectionID].append(api_line)
+                # Lusha
+                # only for lines not sections
+                api_line = Line(model)
+                for k, v in new_line.items():
+                    setattr(api_line, k, v)
 
-            section_dict[sectionID] = settings["type"]
+                # Append the line DiTTo object to the list of DiTTo lines
+                self._lines.append(api_line)
+                if not sectionID in self.section_duplicates:
+                    self.section_duplicates[sectionID] = []
+                self.section_duplicates[sectionID].append(api_line)
+
+                section_dict[sectionID] = settings["type"]
 
         missing_line.close()
         return 1
@@ -4782,54 +5426,56 @@ class Reader(AbstractReader):
         #####################################################
         #
         # Open the network file
-        self.get_file_content("network")
+        #self.get_file_content("network")
 
         # Loop over the network file
-        for line in self.content:
+        #for line in self.content:
 
-            #########################################
-            #                                       #
-            #             SERIE CAPACITOR           #
-            #                                       #
-            #########################################
-            #
-            self.settings.update(
-                self.parser_helper(
-                    line,
-                    ["serie_capacitor_settings"],
-                    ["sectionid", "eqid", "coordx", "coordy"],
-                    mapp_serie_capacitor_settings,
-                    {"type": "serie"},
-                )
+        self.content = iter(self.file_network_capacitor)
+        line = next(self.content)
+        #########################################
+        #                                       #
+        #             SERIE CAPACITOR           #
+        #                                       #
+        #########################################
+        #
+        self.settings.update(
+            self.parser_helper(
+                line,
+                ["serie_capacitor_settings"],
+                ["sectionid", "eqid", "coordx", "coordy"],
+                mapp_serie_capacitor_settings,
+                {"type": "serie"},
             )
+        )
 
-            #########################################
-            #                                       #
-            #             SHUNT CAPACITOR           #
-            #                                       #
-            #########################################
-            #
-            self.settings.update(
-                self.parser_helper(
-                    line,
-                    ["shunt_capacitor_settings"],
-                    [
-                        "sectionid",
-                        "shuntcapacitorid",
-                        "connection",
-                        "fixedkvara",
-                        "fixedkvarb",
-                        "fixedkvarc",
-                        "switchedkvara",
-                        "switchedkvarb",
-                        "switchedkvarc",
-                        "kv",
-                        "controllingphase",
-                    ],
-                    mapp_shunt_capacitor_settings,
-                    {"type": "shunt"},
-                )
+        #########################################
+        #                                       #
+        #             SHUNT CAPACITOR           #
+        #                                       #
+        #########################################
+        #
+        self.settings.update(
+            self.parser_helper(
+                line,
+                ["shunt_capacitor_settings"],
+                [
+                    "sectionid",
+                    "shuntcapacitorid",
+                    "connection",
+                    "fixedkvara",
+                    "fixedkvarb",
+                    "fixedkvarc",
+                    "switchedkvara",
+                    "switchedkvarb",
+                    "switchedkvarc",
+                    "kv",
+                    "controllingphase",
+                ],
+                mapp_shunt_capacitor_settings,
+                {"type": "shunt"},
             )
+        )
 
         #####################################################
         #                                                   #
@@ -4838,37 +5484,39 @@ class Reader(AbstractReader):
         #####################################################
         #
         # Open the equipment file
-        self.get_file_content("equipment")
+        #self.get_file_content("equipment")
 
         # Loop over the equipment file
-        for line in self.content:
+        #for line in self.content:
 
-            #########################################
-            #                                       #
-            #        SERIE CAPACITOR                #
-            #                                       #
-            #########################################
-            #
-            self.capacitors.update(
-                self.parser_helper(
-                    line, ["serie_capacitor"], ["id", "reactance"], mapp_serie_capacitor
-                )
+        self.content = iter(self.file_equipment_capacitor)
+        line = next(self.content)
+        #########################################
+        #                                       #
+        #        SERIE CAPACITOR                #
+        #                                       #
+        #########################################
+        #
+        self.capacitors.update(
+            self.parser_helper(
+                line, ["serie_capacitor"], ["id", "reactance"], mapp_serie_capacitor
             )
+        )
 
-            #########################################
-            #                                       #
-            #        SHUNT CAPACITOR                #
-            #                                       #
-            #########################################
-            #
-            self.capacitors.update(
-                self.parser_helper(
-                    line,
-                    ["shunt_capacitor"],
-                    ["id", "kvar", "kv", "type"],
-                    mapp_shunt_capacitor,
-                )
+        #########################################
+        #                                       #
+        #        SHUNT CAPACITOR                #
+        #                                       #
+        #########################################
+        #
+        self.capacitors.update(
+            self.parser_helper(
+                line,
+                ["shunt_capacitor"],
+                ["id", "kvar", "kv", "type"],
+                mapp_shunt_capacitor,
             )
+        )
 
         for sectionID, settings in self.settings.items():
 
@@ -4908,7 +5556,15 @@ class Reader(AbstractReader):
             except:
                 pass
 
-            api_capacitor.feeder_name = self.section_feeder_mapping[sectionID]
+            try:
+                api_capacitor.feeder_name = self.section_feeder_mapping[sectionID]
+            except:
+                pass
+
+            try:
+                api_capacitor.substation_name = self.feeder_sub_mapping[api_capacitor.feeder_name]
+            except:
+                api_capacitor.substation_name = api_capacitor.feeder_name
 
             # Connection_type
             # (Only works with shunt capacitors)
@@ -5221,11 +5877,14 @@ class Reader(AbstractReader):
         #####################################################
         #
         # Open the network file
-        self.get_file_content("network")
+        #self.get_file_content("network")
 
         # Loop over the network file
-        for line in self.content:
+        #for line in self.content:
 
+        try:
+            self.content = iter(self.file_network_trans)
+            line = next(self.content)
             #########################################
             #                                       #
             #             AUTO TRANSFORMER          #
@@ -5366,6 +6025,8 @@ class Reader(AbstractReader):
                     {"type": "phase_shifter_transformer"},
                 )
             )
+        except:
+            pass
 
         #####################################################
         #                                                   #
@@ -5374,131 +6035,133 @@ class Reader(AbstractReader):
         #####################################################
         #
         # Open the equipment file
-        self.get_file_content("equipment")
+        #self.get_file_content("equipment")
 
         # Loop over the equipment file
-        for line in self.content:
+        #for line in self.content:
 
-            #########################################
-            #                                       #
-            #             AUTO TRANSFORMER          #
-            #                                       #
-            #########################################
-            #
-            self.auto_transformers.update(
-                self.parser_helper(
-                    line,
-                    ["auto_transformer"],
-                    [
-                        "id",
-                        "kva",
-                        "connection_configuration",
-                        "noloadlosses",
-                        "isltc",
-                        "taps",
-                        "lowerbandwidth",
-                        "upperbandwidth",
-                    ],
-                    mapp_auto_transformer,
-                )
+        self.content = iter(self.file_equipment_transformer)
+        line = next(self.content)
+        #########################################
+        #                                       #
+        #             AUTO TRANSFORMER          #
+        #                                       #
+        #########################################
+        #
+        self.auto_transformers.update(
+            self.parser_helper(
+                line,
+                ["auto_transformer"],
+                [
+                    "id",
+                    "kva",
+                    "connection_configuration",
+                    "noloadlosses",
+                    "isltc",
+                    "taps",
+                    "lowerbandwidth",
+                    "upperbandwidth",
+                ],
+                mapp_auto_transformer,
             )
+        )
 
-            #########################################
-            #                                       #
-            #         GROUNDING TRANSFORMER         #
-            #                                       #
-            #########################################
-            #
-            self.grounding_transformers.update(
-                self.parser_helper(
-                    line,
-                    ["grounding_transformer"],
-                    ["id", "ratedcapacity", "ratedvoltage", "connection_configuration"],
-                    mapp_grounding_transformer,
-                )
+        #########################################
+        #                                       #
+        #         GROUNDING TRANSFORMER         #
+        #                                       #
+        #########################################
+        #
+        self.grounding_transformers.update(
+            self.parser_helper(
+                line,
+                ["grounding_transformer"],
+                ["id", "ratedcapacity", "ratedvoltage", "connection_configuration"],
+                mapp_grounding_transformer,
             )
+        )
 
-            #########################################
-            #                                       #
-            #  THREE WINDING AUTO TRANSFORMER       #
-            #                                       #
-            #########################################
-            #
-            # LTC controls not yet supported for three-winding transformers
-            self.three_winding_auto_transformers.update(
-                self.parser_helper(
-                    line,
-                    ["three_winding_auto_transformer"],
-                    [
-                        "id",
-                        "primaryratedcapacity",
-                        "primaryvoltage",
-                        "secondaryratedcapacity",
-                        "secondaryvoltage",
-                        "tertiaryratedcapacity",
-                        "tertiaryvoltage",
-                        "noloadlosses",
-                    ],
-                    mapp_three_winding_auto_transformer,
-                )
+        #########################################
+        #                                       #
+        #  THREE WINDING AUTO TRANSFORMER       #
+        #                                       #
+        #########################################
+        #
+        # LTC controls not yet supported for three-winding transformers
+        self.three_winding_auto_transformers.update(
+            self.parser_helper(
+                line,
+                ["three_winding_auto_transformer"],
+                [
+                    "id",
+                    "primaryratedcapacity",
+                    "primaryvoltage",
+                    "secondaryratedcapacity",
+                    "secondaryvoltage",
+                    "tertiaryratedcapacity",
+                    "tertiaryvoltage",
+                    "noloadlosses",
+                ],
+                mapp_three_winding_auto_transformer,
             )
+        )
 
-            #########################################
-            #                                       #
-            #      THREE WINDING TRANSFORMER        #
-            #                                       #
-            #########################################
-            #
-            # LTC controls not yet supported for three-winding transformers
-            self.three_winding_transformers.update(
-                self.parser_helper(
-                    line,
-                    ["three_winding_transformer"],
-                    [
-                        "id",
-                        "primaryratedcapacity",
-                        "primaryvoltage",
-                        "secondaryratedcapacity",
-                        "secondaryvoltage",
-                        "tertiaryratedcapacity",
-                        "tertiaryvoltage",
-                        "noloadlosses",
-                    ],
-                    mapp_three_winding_transformer,
-                )
+        #########################################
+        #                                       #
+        #      THREE WINDING TRANSFORMER        #
+        #                                       #
+        #########################################
+        #
+        # LTC controls not yet supported for three-winding transformers
+        self.three_winding_transformers.update(
+            self.parser_helper(
+                line,
+                ["three_winding_transformer"],
+                [
+                    "id",
+                    "primaryratedcapacity",
+                    "primaryvoltage",
+                    "secondaryratedcapacity",
+                    "secondaryvoltage",
+                    "tertiaryratedcapacity",
+                    "tertiaryvoltage",
+                    "noloadlosses",
+                ],
+                mapp_three_winding_transformer,
             )
+        )
 
-            #########################################
-            #                                       #
-            #             TRANSFORMER               #
-            #                                       #
-            #########################################
-            #
-            self.transformers.update(
-                self.parser_helper(
-                    line,
-                    ["transformer"],
-                    [
-                        "id",
-                        "type",
-                        "kva",
-                        "kvllprim",
-                        "kvllsec",
-                        "z1",
-                        "z0",
-                        "xr",
-                        "xr0",
-                        "conn",
-                        "noloadlosses",
-                        "phaseshift",
-                        "isltc",
-                        "taps",
-                        "lowerbandwidth",
-                        "upperbandwidth",
-                    ],
-                    mapp_transformer,
-                )
+        #########################################
+        #                                       #
+        #             TRANSFORMER               #
+        #                                       #
+        #########################################
+        #
+        self.transformers.update(
+            self.parser_helper(
+                line,
+                ["transformer"],
+                [
+                    "id",
+                    "type",
+                    "kva",
+                    "kvllprim",
+                    "kvllsec",
+                    "z1",
+                    "z0",
+                    "xr",
+                    "xr0",
+                    "conn",
+                    "noloadlosses",
+                    "phaseshift",
+                    "isltc",
+                    "taps",
+                    "lowerbandwidth",
+                    "upperbandwidth",
+                ],
+                mapp_transformer,
             )
+        )
 
         for sectionID, settings in self.settings.items():
 
@@ -5520,8 +6183,11 @@ class Reader(AbstractReader):
             except:
                 pass
 
-            feeder_name = self.section_feeder_mapping[sectionID]
-            api_transformer.feeder_name = feeder_name
+            try:
+                feeder_name = self.section_feeder_mapping[sectionID]
+                api_transformer.feeder_name = feeder_name
+            except:
+                pass
             # Lusha
             try:
                 api_transformer.substation_name = self.feeder_sub_mapping[feeder_name]
@@ -5718,10 +6384,6 @@ class Reader(AbstractReader):
                 R_perc = Z_perc.real / 2.0 # What's 2 here?
                 xhl = Z_perc.imag
 
-
-
-
-
                 # Check if it's an LTC
                 #
                 if "isltc" in transformer_data and transformer_data["isltc"]:
@@ -5737,7 +6399,16 @@ class Reader(AbstractReader):
                         api_regulator.name = "Reg_" + settings["sectionid"]
                     except:
                         pass
-                    api_regulator.feeder_name = self.section_feeder_mapping[sectionID]
+
+                    try:
+                        api_regulator.feeder_name = self.section_feeder_mapping[sectionID]
+                    except:
+                        pass
+
+                    try:
+                        api_regulator.substation_name = self.feeder_sub_mapping[api_regulator.feeder_name]
+                    except:
+                        api_regulator.substation_name = api_regulator.feeder_name
 
                     try:
                         api_regulator.connected_transformer = api_transformer.name
@@ -5986,37 +6657,40 @@ class Reader(AbstractReader):
         #####################################################
         #
         # Open the network file
-        self.get_file_content("network")
+        #self.get_file_content("network")
 
         # Loop over the network file
-        for line in self.content:
+        #for line in self.content:
 
-            self.settings.update(
-                self.parser_helper(
-                    line,
-                    ["regulator_settings"],
-                    [
-                        "sectionid",
-                        "eqid",
-                        "coordx",
-                        "coordy",
-                        "phaseon",
-                        "ct",
-                        "pt",
-                        "vseta",
-                        "vsetb",
-                        "vsetc",
-                        "bandwidtha",
-                        "bandwidthb",
-                        "bandwidthc",
-                        "tapa",
-                        "tapb",
-                        "tapc",
-                        "conn",
-                    ],
-                    mapp_regulator_settings,
-                )
+        self.content = iter(self.file_network_regulator)
+        line = next(self.content)
+
+        self.settings.update(
+            self.parser_helper(
+                line,
+                ["regulator_settings"],
+                [
+                    "sectionid",
+                    "eqid",
+                    "coordx",
+                    "coordy",
+                    "phaseon",
+                    "ct",
+                    "pt",
+                    "vseta",
+                    "vsetb",
+                    "vsetc",
+                    "bandwidtha",
+                    "bandwidthb",
+                    "bandwidthc",
+                    "tapa",
+                    "tapb",
+                    "tapc",
+                    "conn",
+                ],
+                mapp_regulator_settings,
             )
+        )
 
         #####################################################
         #                                                   #
@@ -6025,32 +6699,34 @@ class Reader(AbstractReader):
         #####################################################
         #
         # Open the network file
-        self.get_file_content("equipment")
+        #self.get_file_content("equipment")
 
         # Loop over the network file
-        for line in self.content:
+        #for line in self.content:
 
-            self.regulators.update(
-                self.parser_helper(
-                    line,
-                    ["regulator"],
-                    [
-                        "id",
-                        "type",
-                        "kva",
-                        "kva_1",
-                        "kva_2",
-                        "kva_3",
-                        "kva_4",
-                        "kvln",
-                        "forwardbandwidth",
-                        "bandwidth",
-                        "ct",
-                        "pt",
-                    ],
-                    mapp_regulators,
-                )
+        self.content = iter(self.file_equipment_regulator)
+        line = next(self.content)
+        self.regulators.update(
+            self.parser_helper(
+                line,
+                ["regulator"],
+                [
+                    "id",
+                    "type",
+                    "kva",
+                    "kva_1",
+                    "kva_2",
+                    "kva_3",
+                    "kva_4",
+                    "kvln",
+                    "forwardbandwidth",
+                    "bandwidth",
+                    "ct",
+                    "pt",
+                ],
+                mapp_regulators,
             )
+        )
 
         for sectionID, settings in self.settings.items():
 
@@ -6096,7 +6772,16 @@ class Reader(AbstractReader):
                 except:
                     pass
 
-                api_regulator.feeder_name = self.section_feeder_mapping[sectionID]
+                try:
+                    api_regulator.feeder_name = self.section_feeder_mapping[sectionID]
+                except:
+                    pass
+
+                try:
+                    api_regulator.substation_name = self.feeder_sub_mapping[api_regulator.feeder_name]
+                except:
+                    api_regulator.substation_name=api_regulator.feeder_name
+                    pass
 
                 try:
                     api_regulator.from_element = self.section_phase_mapping[sectionID][
@@ -6377,8 +7062,17 @@ class Reader(AbstractReader):
                     api_line.to_element_connection_index = int( self.section_phase_mapping[sectionID]["tonodeindex"])
                 except:
                     pass
-                
-                api_line.feeder_name = self.section_feeder_mapping[sectionID]
+
+                try:
+                    api_line.feeder_name = self.section_feeder_mapping[sectionID]
+                except:
+                    pass
+
+                try:
+                    api_line.substation_name = self.feeder_sub_mapping[api_line.feeder_name]
+                except:
+                    api_line.substation_name = api_line.feeder_name
+
                 # Set the position
                 try:
                     position = Position(model)
@@ -6445,8 +7139,12 @@ class Reader(AbstractReader):
                     # Set the connection index for the from_element (info is in the section)
                 
                     api_load_from.phase_loads = []
-                    api_load_from.feeder_name = self.section_feeder_mapping[sectionID]
-    
+                    try:
+                        api_load_from.feeder_name = self.section_feeder_mapping[sectionID]
+                    except:
+                        pass
+
+
                     for ph in phases:
                         try:
                             api_phase_load_from = PhaseLoad(model)
@@ -6493,9 +7191,11 @@ class Reader(AbstractReader):
                     # Set the connection index for the from_element (info is in the section)
     
                     api_load_to.phase_loads = []
-                
-                    api_load_to.feeder_name = self.section_feeder_mapping[sectionID]
-    
+                    try:
+                        api_load_to.feeder_name = self.section_feeder_mapping[sectionID]
+                    except:
+                        pass
+
                     for ph in phases:
                         try:
                             api_phase_load_to = PhaseLoad(model)
@@ -6676,8 +7376,10 @@ class Reader(AbstractReader):
 
             # Lusha
             # choose load model to use
-            # 1 is default, 2 is winter, 3 is summer
-            if load_model_id == 3:
+            # PHI 1 is default, 2 is winter, 3 is summer
+            # BGE 1 is default, 2 is summer, 4 is winter
+            if load_model_id == 2:
+            # if load_model_id == 1:
 
                 if "connectedkva" in settings:
                     connectedkva = float(settings["connectedkva"])
@@ -6824,8 +7526,12 @@ class Reader(AbstractReader):
                         except:
                             pass
 
-                        feeder_name = self.section_feeder_mapping[sectionID]
-                        api_load.feeder_name = feeder_name
+                        try:
+                            feeder_name = self.section_feeder_mapping[sectionID]
+                            api_load.feeder_name = feeder_name
+                        except:
+                            pass
+
                         # Lusha
                         try:
                             api_load.substation_name = self.feeder_sub_mapping[feeder_name]

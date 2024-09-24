@@ -100,8 +100,11 @@ class Writer(AbstractWriter):
         self.feeders_redirect = {}
 
         self.write_taps = False
-        self.separate_feeders = False
-        self.separate_substations = False
+        # Lusha
+        self.separate_feeders = True
+        self.separate_substations = True
+        # self.separate_feeders = False
+        # self.separate_substations = False
         self.verbose = False
 
         self.output_filenames = {
@@ -159,15 +162,16 @@ class Writer(AbstractWriter):
         else:
             self.write_taps = False
 
-        if "separate_feeders" in kwargs:
-            self.separate_feeders = kwargs["separate_feeders"]
-        else:
-            self.separate_feeders = False
+        # Lusha
+        # if "separate_feeders" in kwargs:
+        #     self.separate_feeders = kwargs["separate_feeders"]
+        # else:
+        #     self.separate_feeders = False
 
-        if "separate_substations" in kwargs:
-            self.separate_substations = kwargs["separate_substations"]
-        else:
-            self.separate_substations = False
+        # if "separate_substations" in kwargs:
+        #     self.separate_substations = kwargs["separate_substations"]
+        # else:
+        #     self.separate_substations = False
 
         # Write the bus coordinates
         logger.info("Writing the bus coordinates...")
@@ -393,24 +397,24 @@ class Writer(AbstractWriter):
                             fp.write(txt)
                         # Not currently redirecting buscoords to each subfolder - just use the aggregate in the root directory
                         # self.files_to_redirect.append(os.path.join(output_redirect,self.output_filenames['buses']))
-            output_folder = os.path.join(self.output_path, substation_name)
-            if not os.path.exists(output_folder):
-                os.makedirs(output_folder)
-            with open(
-                os.path.join(output_folder, self.output_filenames["buses"]), "w"
-            ) as fp:
-                fp.write("\n".join(all_substation_buses))
+            # output_folder = os.path.join(self.output_path, substation_name)
+            # if not os.path.exists(output_folder):
+            #     os.makedirs(output_folder)
+            # with open(
+            #     os.path.join(output_folder, self.output_filenames["buses"]), "w"
+            # ) as fp:
+            #     fp.write("\n".join(all_substation_buses))
         if len(self.all_buses) > 0:
-            with open(
-                os.path.join(self.output_path, self.output_filenames["buses"]), "w"
-            ) as fp:  # Writes all the buscoords to the base folder as well
-                fp.write("".join(txt for txt in self.all_buses))
+        #     with open(
+        #         os.path.join(self.output_path, self.output_filenames["buses"]), "w"
+        #     ) as fp:  # Writes all the buscoords to the base folder as well
+        #         fp.write("".join(txt for txt in self.all_buses))
             self.files_to_redirect.append(self.output_filenames["buses"])
 
         return 1
 
 
-    def write_phs(self, model):
+    def write_transformers(self, model):
         """Write the transformers to an OpenDSS file (Transformers.dss by default).
 
         :param model: DiTTo model
@@ -430,8 +434,8 @@ class Writer(AbstractWriter):
 
         # Lusha
         # initiation incase there is no original transformer
-        feeder_name = "DEFAULT"
-        substation_name = "DEFAULT"
+        feeder_name = model.feeder_name
+        substation_name = model.substation_name
         if not substation_name in substation_text_map:
             substation_text_map[substation_name] = set([feeder_name])
         else:
@@ -1033,7 +1037,7 @@ class Writer(AbstractWriter):
                     # Adedoyin
                     #if max(pri_volt_list) < round(obj.nominal_voltage * 10 ** -3, 4):
 
-                        # For RNM datasets only one source exists.
+                    # For RNM datasets only one source exists.
                     # add transformer after source, either with same voltage levels, or change voltage levels
                     if "_src" in obj.name:
                         cleaned_name = obj.name[:-4]
@@ -1053,8 +1057,10 @@ class Writer(AbstractWriter):
                                             i.to_element = i.to_element.replace(".", "_")
                                             txt = "New Transformer.Sub phases=3 windings=2 wdg=1 conn=delta kv={volt} kva=50000.0 %R=(.5 1000 /) bus={name} ".format(
                                                 name=obj.connecting_element, volt=round(obj.nominal_voltage * 10 ** -3, 4))
+                                            # txt += "wdg=2 conn=wye kv={volt} kva=50000 %R=(.5 1000 /) bus={name} XHL=(8 1000 /)".format(
+                                            #     volt=max(pri_volt_list), name=i.to_element)
                                             txt += "wdg=2 conn=wye kv={volt} kva=50000 %R=(.5 1000 /) bus={name} XHL=(8 1000 /)".format(
-                                                volt=max(pri_volt_list), name=i.to_element)
+                                                volt=round(obj.nominal_voltage * 10 ** -3, 4), name=i.to_element)
                                             txt += "\n\n"
 
                                             feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
@@ -1068,11 +1074,14 @@ class Writer(AbstractWriter):
                                             txt = "New Transformer.Sub Phases=3 Windings=2 XHL=(8 1000 /) wdg=1 bus={name} ".format(
                                                 name=obj.connecting_element)
                                             txt += "conn=delta kv={volt} ".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
+                                            # txt += "kva=50000 %r=(.5 1000 /) wdg=2 bus={name} conn=wye kv={volt} kva=50000 %r=(.5 1000 /)".format(
+                                            #     volt=max(pri_volt_list), name=i.to_element)
                                             txt += "kva=50000 %r=(.5 1000 /) wdg=2 bus={name} conn=wye kv={volt} kva=50000 %r=(.5 1000 /)".format(
-                                                volt=max(pri_volt_list), name=i.to_element)
+                                                volt=round(obj.nominal_voltage * 10 ** -3, 4), name=i.to_element)
+
 
                                             feeder_text_map[substation_name + "_" + feeder_name] = feeder_text_map[substation_name + "_" + feeder_name] + txt
-                        ###############Adedoyin#################
+        #                 ###############Adedoyin#################
 
 
         for substation_name in substation_text_map:
@@ -1083,22 +1092,23 @@ class Writer(AbstractWriter):
                 if txt != "":
                     output_folder = None
                     output_redirect = None
-                    if self.separate_substations:
-                        output_folder = os.path.join(self.output_path, substation_name)
-                        output_redirect = substation_name
-                        if not os.path.exists(output_folder):
-                            os.makedirs(output_folder)
-                    else:
-                        output_folder = os.path.join(self.output_path)
-                        output_redirect = ""
-                        if not os.path.exists(output_folder):
-                            os.makedirs(output_folder)
+                    output_folder = os.path.join(self.output_path, substation_name, feeder_name)
+                    # if self.separate_substations:
+                    #     output_folder = os.path.join(self.output_path, substation_name)
+                    #     output_redirect = substation_name
+                    #     if not os.path.exists(output_folder):
+                    #         os.makedirs(output_folder)
+                    # else:
+                    #     output_folder = os.path.join(self.output_path)
+                    #     output_redirect = ""
+                    #     if not os.path.exists(output_folder):
+                    #         os.makedirs(output_folder)
 
-                    if self.separate_feeders:
-                        output_folder = os.path.join(output_folder, feeder_name)
-                        output_redirect = os.path.join(output_redirect, feeder_name)
-                        if not os.path.exists(output_folder):
-                            os.makedirs(output_folder)
+                    # if self.separate_feeders:
+                    #     output_folder = os.path.join(output_folder, feeder_name)
+                    #     output_redirect = os.path.join(output_redirect, feeder_name)
+                    #     if not os.path.exists(output_folder):
+                    #         os.makedirs(output_folder)
                     with open(
                         os.path.join(
                             output_folder, self.output_filenames["transformers"]
@@ -1106,33 +1116,30 @@ class Writer(AbstractWriter):
                         "w",
                     ) as fp:
                         fp.write(txt)
-                    if self.separate_substations and self.separate_feeders:
-                        if substation_name not in self.substations_redirect:
-                            self.substations_redirect[substation_name] = []
-                        self.substations_redirect[substation_name].append(
-                            os.path.join(
-                                feeder_name, self.output_filenames["transformers"]
-                            )
+                    # if self.separate_substations and self.separate_feeders:
+                    #     if substation_name not in self.substations_redirect:
+                    #         self.substations_redirect[substation_name] = []
+                    #     self.substations_redirect[substation_name].append(
+                    #         os.path.join(
+                    #             feeder_name, self.output_filenames["transformers"]
+                    #         )
+                    #     )
+                    # elif self.separate_substations:
+                    #     if substation_name not in self.substations_redirect:
+                    #         self.substations_redirect[substation_name] = []
+                    #     self.substations_redirect[substation_name].append(
+                    #         self.output_filenames["transformers"]
+                    #     )
+                    # if self.separate_feeders:
+                    #     combined_feeder_sub = os.path.join(substation_name, feeder_name)
+                    #     if combined_feeder_sub not in self.feeders_redirect:
+                    #         self.feeders_redirect[combined_feeder_sub] = []
+                    #     self.feeders_redirect[combined_feeder_sub].append(
+                    #         self.output_filenames["transformers"]
+                    #     )
+                    #
+                    self.files_to_redirect.append(self.output_filenames["transformers"]
                         )
-                    elif self.separate_substations:
-                        if substation_name not in self.substations_redirect:
-                            self.substations_redirect[substation_name] = []
-                        self.substations_redirect[substation_name].append(
-                            self.output_filenames["transformers"]
-                        )
-                    if self.separate_feeders:
-                        combined_feeder_sub = os.path.join(substation_name, feeder_name)
-                        if combined_feeder_sub not in self.feeders_redirect:
-                            self.feeders_redirect[combined_feeder_sub] = []
-                        self.feeders_redirect[combined_feeder_sub].append(
-                            self.output_filenames["transformers"]
-                        )
-
-                    self.files_to_redirect.append(
-                        os.path.join(
-                            output_redirect, self.output_filenames["transformers"]
-                        )
-                    )
 
 
         return 1
@@ -1358,9 +1365,7 @@ class Writer(AbstractWriter):
                             self.output_filenames["storage"]
                         )
 
-                    self.files_to_redirect.append(
-                        os.path.join(output_redirect, self.output_filenames["storage"])
-                    )
+                    self.files_to_redirect.append(self.output_filenames["storage"])
 
         return 1
 
@@ -1696,11 +1701,7 @@ class Writer(AbstractWriter):
                             self.output_filenames["PVSystems"]
                         )
 
-                    self.files_to_redirect.append(
-                        os.path.join(
-                            output_redirect, self.output_filenames["PVSystems"]
-                        )
-                    )
+                    self.files_to_redirect.append(self.output_filenames["PVSystems"])
 
     def write_timeseries(self, model):
         """Write all the unique timeseries objects to csv files if they are in memory.
@@ -1884,11 +1885,7 @@ class Writer(AbstractWriter):
                             self.output_filenames["loadshapes"]
                         )
 
-                    self.files_to_redirect.append(
-                        os.path.join(
-                            output_redirect, self.output_filenames["loadshapes"]
-                        )
-                    )
+                    self.files_to_redirect.append(self.output_filenames["loadshapes"])
 
     def write_loads(self, model):
         """Write the loads to an OpenDSS file (Loads.dss by default).
@@ -2209,9 +2206,8 @@ class Writer(AbstractWriter):
                             self.output_filenames["loads"]
                         )
 
-                    self.files_to_redirect.append(
-                        os.path.join(output_redirect, self.output_filenames["loads"])
-                    )
+                    self.files_to_redirect.append(self.output_filenames["loads"])
+
 
         return 1
 
@@ -2635,11 +2631,13 @@ class Writer(AbstractWriter):
                             self.output_filenames["regulators"]
                         )
 
-                    self.files_to_redirect.append(
-                        os.path.join(
-                            output_redirect, self.output_filenames["regulators"]
-                        )
-                    )
+                    # self.files_to_redirect.append(
+                    #     os.path.join(
+                    #         output_redirect, self.output_filenames["regulators"]
+                    #     )
+                    # )
+
+                    self.files_to_redirect.append(self.output_filenames["regulators"])
 
         return 1
 
@@ -2885,11 +2883,7 @@ class Writer(AbstractWriter):
                             self.output_filenames["capacitors"]
                         )
 
-                    self.files_to_redirect.append(
-                        os.path.join(
-                            output_redirect, self.output_filenames["capacitors"]
-                        )
-                    )
+                    self.files_to_redirect.append(self.output_filenames["capacitors"])
 
         return 1
 
@@ -2922,6 +2916,7 @@ class Writer(AbstractWriter):
                 # the line using geometries. If we miss something, use LineCodes.
                 #
                 # For overhead (and undefined lines...)
+
                 if i.line_type != "underground":
                     if len(i.wires) == 0:
                         use_linecodes = True
@@ -3233,9 +3228,8 @@ class Writer(AbstractWriter):
                             self.output_filenames["lines"]
                         )
 
-                    self.files_to_redirect.append(
-                        os.path.join(output_redirect, self.output_filenames["lines"])
-                    )
+                    self.files_to_redirect.append(self.output_filenames["lines"])
+
 
         return 1
 
@@ -3372,9 +3366,9 @@ class Writer(AbstractWriter):
                     self.output_filenames["wiredata"]
                 )
 
-            self.files_to_redirect.append(
-                os.path.join(output_redirect, self.output_filenames["wiredata"])
-            )
+            self.files_to_redirect.append(self.output_filenames["wiredata"])
+
+
             for wire_name, wire_data in self.all_wires.items():
                 fp.write("New WireData.{name}".format(name=wire_name))
 
@@ -3410,9 +3404,8 @@ class Writer(AbstractWriter):
                     self.output_filenames["CNDATA"]
                 )
 
-            self.files_to_redirect.append(
-                os.path.join(output_redirect, self.output_filenames["CNDATA"])
-            )
+            self.files_to_redirect.append(self.output_filenames["CNDATA"])
+
             for cable_name, cable_data in self.all_cables.items():
                 fp.write("New CNDATA.{name}".format(name=cable_name))
                 for key, value in cable_data.items():
@@ -3508,9 +3501,8 @@ class Writer(AbstractWriter):
                     self.output_filenames["linegeometry"]
                 )
 
-            self.files_to_redirect.append(
-                os.path.join(output_redirect, self.output_filenames["linegeometry"])
-            )
+            self.files_to_redirect.append(self.output_filenames["linegeometry"])
+
             for geometry_name, geometry_data in self.all_geometries.items():
                 fp.write("New LineGeometry.{name}".format(name=geometry_name))
                 if "nconds" in geometry_data:
@@ -3587,7 +3579,7 @@ class Writer(AbstractWriter):
                     # Lusha
                     # use linecableid for linecode
 
-                    if i.linecableid is not None:
+                    try:
                         i.nameclass = i.linecableid
                         linecode_found = True
 
@@ -3626,7 +3618,7 @@ class Writer(AbstractWriter):
                         #             cnt += 1
                         #     else:
                         #         i.nameclass = nameclass_phase
-                    else:
+                    except:
                         linecode_found = False
                         for k, v in self.all_linecodes.items():
                             if parsed_line == v:
@@ -3705,11 +3697,7 @@ class Writer(AbstractWriter):
                             self.output_filenames["linecodes"]
                         )
 
-                    self.files_to_redirect.append(
-                        os.path.join(
-                            output_redirect, self.output_filenames["linecodes"]
-                        )
-                    )
+                    self.files_to_redirect.append(self.output_filenames["linecodes"])
 
                     fp = open(
                         os.path.join(output_folder, self.output_filenames["linecodes"]),
@@ -4020,9 +4008,11 @@ class Writer(AbstractWriter):
         return result
 
     def write_master_file(self, model):
+        substation_name = model.substation_name
+        feeder_name = model.feeder_name
         """Write the master.dss file."""
         with open(
-            os.path.join(self.output_path, self.output_filenames["master"]), "w"
+            os.path.join(self.output_path, substation_name, feeder_name, self.output_filenames["master"]), "w"
         ) as fp:
             fp.write("Clear\n\nNew Circuit.Full_Network ")
 
