@@ -2,10 +2,10 @@
 
 import os
 import time
-
+import pickle
 
 # Import the CYME reader
-from ditto.readers.cyme.read import Reader
+from ditto.readers.cyme.read_simple import Reader
 
 # Import the OpenDSS writer
 from ditto.writers.opendss.write import Writer
@@ -25,14 +25,8 @@ def main():
     # Change this if you wish to use another system
     cwd = os.getcwd()
 
-
-    #path = cwd + '/Data/BGE/whole_network/Cyme'
-
-    #path = cwd + '/Data/BGE/selected_10_feeders_summer/cyme'
-    # path = '../Data/BGE/Two-feeder/two_feeders'
-    path = cwd + '/Data/PHI/cyme'
-    #####path = cwd + '/Data/PHI_0328/cyme'
-
+     
+    path = cwd + '/Data/Cyme'
 
 
     ############################
@@ -55,6 +49,8 @@ def main():
     end = time.time()
     print('...Done (in {} seconds'.format(end - start))
 
+
+
     ##############################
     #  STEP 2: WRITE TO OpenDSS  #
     ##############################
@@ -71,14 +67,11 @@ def main():
             model = r.feeder_models[feedername]
             if model.network_type == "substation":
                 continue
-            # Instanciate a Writer object
-            # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
-            #w = Writer(output_path=cwd + '/Data/BGE/selected_10_feeders_summer/Feeder_' + feedername + "/")
-            w = Writer(output_path= cwd +'/Data/PHI/Feeder_' + feedername + "/")
-            #####w = Writer(output_path=cwd + '/Data/PHI_0328/Feeder_' + feedername + "/")
-            # w = Writer(output_path='../Data/BGE/Two-feeder/Feeder_' + feedername + "/")
-            #w = Writer(output_path= cwd + '/Data/BGE/whole_network/Substation_'+substation +'/Feeder_'+feedername+"/")
 
+            model.substation_name = substation
+            model.feeder_name = feedername
+            # Instanciate a Writer object
+            w = Writer(output_path= cwd + '/Data/Opendss/')
             w.write(model)
     end = time.time()
     print('...Done (in {} seconds'.format(end - start))
