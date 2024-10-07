@@ -4633,9 +4633,9 @@ class Reader(AbstractReader):
                 #
                 # Case 1: The line is balanced
                 try:
-                    print(line_data["type"] )
+                    line_data["type"]
                 except:
-                    print("no line type")
+                    print("no line type for line " + new_line["name"])
                 if line_data["type"] == "balanced_line":
                     # In this case, we build the impedance matrix from Z+ and Z0 in the following way:
                     #         __________________________
