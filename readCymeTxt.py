@@ -34,8 +34,9 @@ def main():
 
             network_file = path+'/'+file
             Sub_name = file.split("_")[0]
+            Sub_id = file.split("_")[0][3:]
             equipment_file = mainpath + '/Equipment/' + Sub_name + '_Equipment.txt'
-            load_file = mainpath + '/Loads/' + Sub_name + '_Loads.txt'
+            load_file = mainpath + '/Loads/S' + Sub_id + '_Loads.txt'
             reader = Reader()
 
             ############################
