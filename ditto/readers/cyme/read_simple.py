@@ -338,12 +338,19 @@ class Reader(AbstractReader):
             -'load': Will get the content of the load file given in the constructor
         """
         # Shortcut mapping
+        # if filename == "network":
+        #     filename = os.path.join(self.data_folder_path, self.network_filename)
+        # elif filename == "equipment":
+        #     filename = os.path.join(self.data_folder_path, self.equipment_filename)
+        # elif filename == "load":
+        #     filename = os.path.join(self.data_folder_path, self.load_filename)
+
         if filename == "network":
-            filename = os.path.join(self.data_folder_path, self.network_filename)
+            filename =  self.network_filename
         elif filename == "equipment":
-            filename = os.path.join(self.data_folder_path, self.equipment_filename)
+            filename =  self.equipment_filename
         elif filename == "load":
-            filename = os.path.join(self.data_folder_path, self.load_filename)
+            filename = self.load_filename
 
         # Open the file and get the content
         try:
@@ -1520,10 +1527,10 @@ class Reader(AbstractReader):
 
         self.cyme_version = cyme_version
 
-        if self.use_SI is None:
-            raise ValueError(
-                "Could not find [SI] or [IMPERIAL] unit system information. Unable to parse."
-            )
+        # if self.use_SI is None:
+        #     raise ValueError(
+        #         "Could not find [SI] or [IMPERIAL] unit system information. Unable to parse."
+        #     )
 
     def parse_subnetwork_connections(self, model=None):
         """Parse the subnetwork connections.
@@ -4347,9 +4354,11 @@ class Reader(AbstractReader):
                 if settings["linecableid"] in self.balanced_lines:
                     # Cache the line data
                     line_data = self.balanced_lines[settings["linecableid"]]
+                    line_data["type"] = "balanced_line"
                 elif settings["linecableid"] in self.unbalanced_lines:
                     # Cache the line data
                     line_data = self.unbalanced_lines[settings["linecableid"]]
+                    line_data["type"] = "unbalanced_line"
                 elif settings["linecableid"] in self.concentric_neutral_cable:
                     # Cache the line data
                     line_data = self.concentric_neutral_cable[settings["linecableid"]]
@@ -4419,16 +4428,22 @@ class Reader(AbstractReader):
                             line_data['condid_c'] = condID_c
                             line_data['rc'] = condID_c_r25
                             line_data['xc'] = 0.12134*math.log10(float(condID_c_diameter)/float(condID_c_gmr))
-                        if condID_n1 != "NONE":
-                            condID_n1_diameter = self.conductors[condID_n1]['diameter']
-                            condID_n1_r25 = self.conductors[condID_n1]['r25']
-                            condID_n1_gmr = self.conductors[condID_n1]['gmr']
-                            line_data['condid_n1'] = condID_n1
-                        if condID_n2 != "NONE":
-                            condID_n2_diameter = self.conductors[condID_n2]['diameter']
-                            condID_n2_r25 = self.conductors[condID_n2]['r25']
-                            condID_n2_gmr = self.conductors[condID_n2]['gmr']
-                            line_data['condid_n2'] = condID_n2
+                        try:
+                            if condID_n1 != "NONE":
+                                condID_n1_diameter = self.conductors[condID_n1]['diameter']
+                                condID_n1_r25 = self.conductors[condID_n1]['r25']
+                                condID_n1_gmr = self.conductors[condID_n1]['gmr']
+                                line_data['condid_n1'] = condID_n1
+                        except:
+                            print("conductor " + condID_n1 + " not found")
+                        try:
+                            if condID_n2 != "NONE":
+                                condID_n2_diameter = self.conductors[condID_n2]['diameter']
+                                condID_n2_r25 = self.conductors[condID_n2]['r25']
+                                condID_n2_gmr = self.conductors[condID_n2]['gmr']
+                                line_data['condid_n2'] = condID_n2
+                        except:
+                            print("conductor " + condID_n2 + " not found")
 
                         if condID_a != "NONE" and condID_b != "NONE":
                             line_data["mutualresistanceab"] =0
@@ -4605,7 +4620,7 @@ class Reader(AbstractReader):
             else:
                 # Lusha
                 # add linecode for each line
-                new_line["linecableid"] = line_data["id"]
+                new_line["linecableid"] = new_line["name"]
                 # Lusha
                 try:
                     new_line["amps"] = float(line_data["amps"])
@@ -4617,7 +4632,10 @@ class Reader(AbstractReader):
                 # We now face two different case:
                 #
                 # Case 1: The line is balanced
-                #
+                try:
+                    print(line_data["type"] )
+                except:
+                    print("no line type")
                 if line_data["type"] == "balanced_line":
                     # In this case, we build the impedance matrix from Z+ and Z0 in the following way:
                     #         __________________________
@@ -7378,8 +7396,7 @@ class Reader(AbstractReader):
             # choose load model to use
             # PHI 1 is default, 2 is winter, 3 is summer
             # BGE 1 is default, 2 is summer, 4 is winter
-            if load_model_id == 2:
-            # if load_model_id == 1:
+            if load_model_id == 1:
 
                 if "connectedkva" in settings:
                     connectedkva = float(settings["connectedkva"])
@@ -7598,7 +7615,8 @@ class Reader(AbstractReader):
                             self.section_duplicates[sectionID] = []
                         if not fused: #Because mutiple loads on different phases are joined into a single one
                             self.section_duplicates[sectionID].append(api_load)
-
+            else:
+                print("no load found\n")
         return 1
 
     def parse_dg(self, model):
