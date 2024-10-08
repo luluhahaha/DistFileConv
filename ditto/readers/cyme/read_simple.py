@@ -2996,50 +2996,52 @@ class Reader(AbstractReader):
 
         # Loop over the network file
         # loop over overhead line
-        self.content = iter(self.file_network_line_overhead)
-        line = next(self.content)
-        print(line)
-        #########################################
-        #                                       #
-        #      OVERHEAD UNBALANCED LINES        #
-        #                                       #
-        #########################################
-        #
-        self.settings = self.update_dict(
-            self.settings,
-            self.parser_helper(
-                line,
-                ["overhead_unbalanced_line_settings"],
-                ["sectionid", "coordx", "coordy", "linecableid", "length"],
-                mapp_overhead,
-                {"type": "overhead_unbalanced"},
-            ),
-        )
+        try:
+            self.content = iter(self.file_network_line_overhead)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #      OVERHEAD UNBALANCED LINES        #
+            #                                       #
+            #########################################
+            #
+            self.settings = self.update_dict(
+                self.settings,
+                self.parser_helper(
+                    line,
+                    ["overhead_unbalanced_line_settings"],
+                    ["sectionid", "coordx", "coordy", "linecableid", "length"],
+                    mapp_overhead,
+                    {"type": "overhead_unbalanced"},
+                ),
+            )
 
-        #########################################
-        #                                       #
-        #        OVERHEAD BALANCED LINES        #
-        #                                       #
-        #########################################
-        #
-        self.settings = self.update_dict(
-            self.settings,
-            self.parser_helper(
-                line,
-                ["overhead_line_settings"],
-                ["sectionid", "coordx", "coordy", "linecableid", "length"],
-                mapp_overhead,
-                {"type": "overhead_balanced"},
-            ),
-        )
-
+            #########################################
+            #                                       #
+            #        OVERHEAD BALANCED LINES        #
+            #                                       #
+            #########################################
+            #
+            self.settings = self.update_dict(
+                self.settings,
+                self.parser_helper(
+                    line,
+                    ["overhead_line_settings"],
+                    ["sectionid", "coordx", "coordy", "linecableid", "length"],
+                    mapp_overhead,
+                    {"type": "overhead_balanced"},
+                ),
+            )
+        except:
+            pass
 
         # loop over overhead by phase line
         try:
             self.content = iter(self.file_network_line_overhead_byphase)
             line = next(self.content)
 
-            print(line)
+            #print(line)
             #########################################
             #                                       #
             #     OVERHEAD BY PHASE SETTINGS        #
@@ -3073,57 +3075,62 @@ class Reader(AbstractReader):
             pass
 
         # loop over underground line
-        self.content = iter(self.file_network_line_underground)
-        line = next(self.content)
+        try:
+            self.content = iter(self.file_network_line_underground)
+            line = next(self.content)
 
-        print(line)
-        #########################################
-        #                                       #
-        #          UNDERGROUND LINES            #
-        #                                       #
-        #########################################
-        #
-        self.settings = self.update_dict(
-            self.settings,
-            self.parser_helper(
-                line,
-                ["underground_line_settings"],
-                ["sectionid", "coordx", "coordy", "linecableid", "length", "amps"],
-                mapp_underground,
-                {"type": "underground"},
-            ),
-        )
-
+            #print(line)
+            #########################################
+            #                                       #
+            #          UNDERGROUND LINES            #
+            #                                       #
+            #########################################
+            #
+            self.settings = self.update_dict(
+                self.settings,
+                self.parser_helper(
+                    line,
+                    ["underground_line_settings"],
+                    ["sectionid", "coordx", "coordy", "linecableid", "length", "amps"],
+                    mapp_underground,
+                    {"type": "underground"},
+                ),
+            )
+        except:
+            pass
 
 
 
         # loop over switch
-        self.content = iter(self.file_network_switch)
-        line = next(self.content)
-        print(line)
+        try:
+            self.content = iter(self.file_network_switch)
+            line = next(self.content)
+            #print(line)
 
-        #########################################
-        #                                       #
-        #                SWITCH.                #
-        #                                       #
-        #########################################
-        #
-        self.settings = self.update_dict(
-            self.settings,
-            self.parser_helper(
-                line,
-                ["switch_settings"],
-                ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
-                mapp_switch,
-                {"type": "switch"},
-            ),
-        )
+            #########################################
+            #                                       #
+            #                SWITCH.                #
+            #                                       #
+            #########################################
+            #
+            self.settings = self.update_dict(
+                self.settings,
+                self.parser_helper(
+                    line,
+                    ["switch_settings"],
+                    ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
+                    mapp_switch,
+                    {"type": "switch"},
+                ),
+            )
+        except:
+            pass
 
         # loop over sectionalizer
         try:
             self.content = iter(self.file_network_sectionalizer)
             line = next(self.content)
-            print(line)
+            #print(line)
             #########################################
             #                                       #
             #             SECTIONALIZER.            #
@@ -3144,68 +3151,77 @@ class Reader(AbstractReader):
             pass
 
         # loop over fuse
-        self.content = iter(self.file_network_fuse)
-        line = next(self.content)
-        print(line)
-        #########################################
-        #                                       #
-        #                 FUSES.                #
-        #                                       #
-        #########################################
-        #
-        self.settings = self.update_dict(
-            self.settings,
-            self.parser_helper(
-                line,
-                ["fuse_settings"],
-                ["sectionid", "coordx", "coordy", "eqid"],
-                mapp_switch,  # Same as switches
-                {"type": "fuse"},
-            ),
-        )
-
+        try:
+            self.content = iter(self.file_network_fuse)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #                 FUSES.                #
+            #                                       #
+            #########################################
+            #
+            self.settings = self.update_dict(
+                self.settings,
+                self.parser_helper(
+                    line,
+                    ["fuse_settings"],
+                    ["sectionid", "coordx", "coordy", "eqid"],
+                    mapp_switch,  # Same as switches
+                    {"type": "fuse"},
+                ),
+            )
+        except:
+            pass
 
         # loop over recloser
-        self.content = iter(self.file_network_recloser)
-        line = next(self.content)
-        print(line)
-        #########################################
-        #                                       #
-        #              RECLOSERS.               #
-        #                                       #
-        #########################################
-        #
-        self.settings = self.update_dict(
-            self.settings,
-            self.parser_helper(
-                line,
-                ["recloser_settings"],
-                ["sectionid", "coordx", "coordy", "eqid"],
-                mapp_switch,  # Same as switches
-                {"type": "recloser"},
-            ),
-        )
+        try:
+            self.content = iter(self.file_network_recloser)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #              RECLOSERS.               #
+            #                                       #
+            #########################################
+            #
+            self.settings = self.update_dict(
+                self.settings,
+                self.parser_helper(
+                    line,
+                    ["recloser_settings"],
+                    ["sectionid", "coordx", "coordy", "eqid"],
+                    mapp_switch,  # Same as switches
+                    {"type": "recloser"},
+                ),
+            )
+        except:
+            pass
+
 
         # loop over breaker
-        self.content = iter(self.file_network_breaker)
-        line = next(self.content)
-        print(line)
-        #########################################
-        #                                       #
-        #               BREAKER.                #
-        #                                       #
-        #########################################
-        #
-        self.settings = self.update_dict(
-            self.settings,
-            self.parser_helper(
-                line,
-                ["breaker_settings"],
-                ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
-                mapp_switch,  # Same as switches
-                {"type": "breaker"},
-            ),
-        )
+        try:
+            self.content = iter(self.file_network_breaker)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #               BREAKER.                #
+            #                                       #
+            #########################################
+            #
+            self.settings = self.update_dict(
+                self.settings,
+                self.parser_helper(
+                    line,
+                    ["breaker_settings"],
+                    ["sectionid", "coordx", "coordy", "eqid", "closedphase"],
+                    mapp_switch,  # Same as switches
+                    {"type": "breaker"},
+                ),
+            )
+        except:
+            pass
 
         # loop over network protector
         # self.content = iter(self.file_network_protector)
@@ -3234,7 +3250,7 @@ class Reader(AbstractReader):
         # loop over section
         self.content = iter(self.file_network_section)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #              SECTIONS.                #
@@ -3265,7 +3281,7 @@ class Reader(AbstractReader):
             #print(line)
         self.content = iter(self.file_equipment_line)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #                 LINES.                #
@@ -3296,7 +3312,7 @@ class Reader(AbstractReader):
 
         self.content = iter(self.file_equipment_line_unbalanced)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #          UNBALANCED LINES.            #
@@ -3339,7 +3355,7 @@ class Reader(AbstractReader):
 
         self.content = iter(self.file_equipment_spacing)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #             SPACING TABLE             #
@@ -3370,7 +3386,7 @@ class Reader(AbstractReader):
 
         self.content = iter(self.file_equipment_conductor)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #              CONDUCTOR                #
@@ -3388,7 +3404,7 @@ class Reader(AbstractReader):
 
         self.content = iter(self.file_equipment_cable_concentric_neutral)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #       CONCENTRIC NEUTRAL CABLE        #
@@ -3415,7 +3431,7 @@ class Reader(AbstractReader):
 
         self.content = iter(self.file_equipment_cable)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #                 CABLE                 #
@@ -3447,7 +3463,7 @@ class Reader(AbstractReader):
 
         self.content = iter(self.file_equipment_fuse)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #                 FUSES                 #
@@ -3466,7 +3482,7 @@ class Reader(AbstractReader):
 
         self.content = iter(self.file_equipment_recloser)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #             RECLOSERS                 #
@@ -3485,7 +3501,7 @@ class Reader(AbstractReader):
 
         self.content = iter(self.file_equipment_sectionalizer)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #          SECTIONALIZERS               #
@@ -3504,7 +3520,7 @@ class Reader(AbstractReader):
 
         self.content = iter(self.file_equipment_breaker)
         line = next(self.content)
-        print(line)
+        #print(line)
         #########################################
         #                                       #
         #               BREAKERS                #
@@ -4413,42 +4429,61 @@ class Reader(AbstractReader):
 
                         # ["id", "diameter", "gmr", "r25", "amps", "withstandrating"],
                         if condID_a != "NONE":
+                            try:
+                                self.conductors[condID_a]
+                            except:
+                                condID_a = "DEFAULT"
                             condID_a_diameter = self.conductors[condID_a]['diameter']
                             condID_a_r25 = self.conductors[condID_a]['r25']
                             condID_a_gmr = self.conductors[condID_a]['gmr']
                             line_data['condid_a'] = condID_a
                             line_data['ra'] = condID_a_r25
                             line_data['xa'] = 0.12134*math.log10(float(condID_a_diameter)/float(condID_a_gmr))
+
                         if condID_b != "NONE":
+                            try:
+                                self.conductors[condID_b]
+                            except:
+                                condID_b = "DEFAULT"
                             condID_b_diameter = self.conductors[condID_b]['diameter']
                             condID_b_r25 = self.conductors[condID_b]['r25']
                             condID_b_gmr = self.conductors[condID_b]['gmr']
                             line_data['condid_b'] = condID_b
                             line_data['rb'] = condID_b_r25
                             line_data['xb'] = 0.12134*math.log10(float(condID_b_diameter)/float(condID_b_gmr))
+
                         if condID_c != "NONE":
+                            try:
+                                self.conductors[condID_c]
+                            except:
+                                condID_c = "DEFAULT"
                             condID_c_diameter = self.conductors[condID_c]['diameter']
                             condID_c_r25 = self.conductors[condID_c]['r25']
                             condID_c_gmr = self.conductors[condID_c]['gmr']
                             line_data['condid_c'] = condID_c
                             line_data['rc'] = condID_c_r25
                             line_data['xc'] = 0.12134*math.log10(float(condID_c_diameter)/float(condID_c_gmr))
-                        try:
-                            if condID_n1 != "NONE":
-                                condID_n1_diameter = self.conductors[condID_n1]['diameter']
-                                condID_n1_r25 = self.conductors[condID_n1]['r25']
-                                condID_n1_gmr = self.conductors[condID_n1]['gmr']
-                                line_data['condid_n1'] = condID_n1
-                        except:
-                            print("conductor " + condID_n1 + " not found")
-                        try:
-                            if condID_n2 != "NONE":
-                                condID_n2_diameter = self.conductors[condID_n2]['diameter']
-                                condID_n2_r25 = self.conductors[condID_n2]['r25']
-                                condID_n2_gmr = self.conductors[condID_n2]['gmr']
-                                line_data['condid_n2'] = condID_n2
-                        except:
-                            print("conductor " + condID_n2 + " not found")
+
+                        if condID_n1 != "NONE":
+                            try:
+                                self.conductors[condID_n1]
+                            except:
+                                condID_n1 = "DEFAULT"
+                            condID_n1_diameter = self.conductors[condID_n1]['diameter']
+                            condID_n1_r25 = self.conductors[condID_n1]['r25']
+                            condID_n1_gmr = self.conductors[condID_n1]['gmr']
+                            line_data['condid_n1'] = condID_n1
+
+
+                        if condID_n2 != "NONE":
+                            try:
+                                self.conductors[condID_n2]
+                            except:
+                                condID_n2 = "DEFAULT"
+                            condID_n2_diameter = self.conductors[condID_n2]['diameter']
+                            condID_n2_r25 = self.conductors[condID_n2]['r25']
+                            condID_n2_gmr = self.conductors[condID_n2]['gmr']
+                            line_data['condid_n2'] = condID_n2
 
                         if condID_a != "NONE" and condID_b != "NONE":
                             line_data["mutualresistanceab"] =0
