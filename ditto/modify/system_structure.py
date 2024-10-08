@@ -74,7 +74,7 @@ class system_structure_modifier(Modifier):
         try:
             self.source = model.source.name
         except:
-            print("no source in feeder "+ model.name)
+            print("no source in feeder "+ model.feeder_name)
         # TODO: Get the source voltage properly...
         #
         # for x in self.model.models:

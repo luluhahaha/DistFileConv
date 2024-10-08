@@ -1733,131 +1733,135 @@ class Reader(AbstractReader):
             # for PHI it is all default
             # source for summer
 
+            # if source_equivalent_data["loadmodelname"].lower() == "default" or \
+            #         source_equivalent_data["loadmodelname"].lower() == "winter":
+            #       continue
+
             if source_equivalent_data["loadmodelname"].lower() == "default" or \
-                    source_equivalent_data["loadmodelname"].lower() == "winter":
-                continue
-
-            # Lusha
-            # feeder headnode, usually in source equivalent
-            #print(source_equivalent_data["nodeid"])
-            if source_equivalent_data["nodeid"] in self.headnode_feeder_mapping.keys():
-                feedername =self.headnode_feeder_mapping[source_equivalent_data["nodeid"]]
-                feeders =[feedername]
-            # substation headnode, in both source equivalent and source
-            elif source_equivalent_data["nodeid"] in self.headnode_sub_mapping.keys():
-                subname = self.headnode_sub_mapping[source_equivalent_data["nodeid"]]
-                feeders = self.sub_feeder_mapping[subname]
-                continue
-            else:
-                raise ValueError("No Source or SourceEq found for Headnode " + str(source_equivalent_data["nodeid"]) + "!")
+                    source_equivalent_data["loadmodelname"].lower() == "":
 
 
-            # already assigned sources to feeders in sub
-            # if self.sub_source_flag[subname] == 1:
-            #     continue
+                # Lusha
+                # feeder headnode, usually in source equivalent
+                #print(source_equivalent_data["nodeid"])
+                if source_equivalent_data["nodeid"] in self.headnode_feeder_mapping.keys():
+                    feedername =self.headnode_feeder_mapping[source_equivalent_data["nodeid"]]
+                    feeders =[feedername]
+                # substation headnode, in both source equivalent and source
+                elif source_equivalent_data["nodeid"] in self.headnode_sub_mapping.keys():
+                    subname = self.headnode_sub_mapping[source_equivalent_data["nodeid"]]
+                    feeders = self.sub_feeder_mapping[subname]
+                    continue
+                else:
+                    raise ValueError("No Source or SourceEq found for Headnode " + str(source_equivalent_data["nodeid"]) + "!")
 
-            # for k, v in self.section_phase_mapping.items():
-            #     if v["fromnodeid"] == source_equivalent_data["nodeid"]:
-            #         sectionID = k
-            #         _from = v["fromnodeid"]
-            #         _to = v["tonodeid"]
-            #         phases = list(v["phase"])
-            #     if (
-            #         v["tonodeid"] == source_equivalent_data["nodeid"]
-            #     ):  # In case the edge is connected backwards
-            #         sectionID = k
-            #         _from = v["tonodeid"]
-            #         _to = v["fromnodeid"]
-            #         phases = list(v["phase"])
 
-            # Lusha
-            for feedername in feeders:
-                try:
-                    # Lusha
-                    headnode = self.feeder_headnode_mapping[feedername]
-                    model = self.feeder_models[feedername]
-                    # if feeder already assigned source, skip
-                    if model.assigned_source == 1:
-                        continue
-                    api_source = PowerSource(model)
-                    model.source = api_source
-                except:
-                    pass
+                # already assigned sources to feeders in sub
+                # if self.sub_source_flag[subname] == 1:
+                #     continue
 
-                #api_source.name = _from + "_src"
-                api_source.name = headnode + "_src"
+                # for k, v in self.section_phase_mapping.items():
+                #     if v["fromnodeid"] == source_equivalent_data["nodeid"]:
+                #         sectionID = k
+                #         _from = v["fromnodeid"]
+                #         _to = v["tonodeid"]
+                #         phases = list(v["phase"])
+                #     if (
+                #         v["tonodeid"] == source_equivalent_data["nodeid"]
+                #     ):  # In case the edge is connected backwards
+                #         sectionID = k
+                #         _from = v["tonodeid"]
+                #         _to = v["fromnodeid"]
+                #         phases = list(v["phase"])
 
-                try:
-                    # Lusha
-                    if float(source_equivalent_data["voltage"]) != 0:
-                        api_source.nominal_voltage = (
-                            float(source_equivalent_data["voltage"]) * 10 ** 3
+                # Lusha
+                for feedername in feeders:
+                    try:
+                        # Lusha
+                        headnode = self.feeder_headnode_mapping[feedername]
+                        model = self.feeder_models[feedername]
+                        # if feeder already assigned source, skip
+                        if model.assigned_source == 1:
+                            continue
+                        api_source = PowerSource(model)
+                        model.source = api_source
+                    except:
+                        pass
+
+                    #api_source.name = _from + "_src"
+                    api_source.name = headnode + "_src"
+
+                    try:
+                        # Lusha
+                        if float(source_equivalent_data["voltage"]) != 0:
+                            api_source.nominal_voltage = (
+                                float(source_equivalent_data["voltage"]) * 10 ** 3
+                            )
+                        else:
+                            api_source.nominal_voltage = (
+                                    float(source_equivalent_data["operatingvoltage1"]) * 10 ** 3 * math.sqrt(3)
+                            )
+                    except:
+                        pass
+
+                    try:
+                        api_source.phases = phases # didn't assign this
+                    except:
+                        pass
+
+                    api_source.is_sourcebus = True
+
+                    try:
+                        api_source.rated_power = 10 ** 3 * float(
+                            source_equivalent_data["mva"]
+                        )  # Modified from source cases where substations can be used.
+                    except:
+                        pass
+
+                    # TODO: connection_type
+
+                    try:
+                        api_source.phase_angle = source_equivalent_data["operatingangle1"]
+                    except:
+                        pass
+
+                    # try:
+                    if "positivesequenceresistance" in source_equivalent_data:
+                        api_source.positive_sequence_impedance = complex(
+                            float(source_equivalent_data["positivesequenceresistance"]),
+                            float(source_equivalent_data["positivesequencereactance"]),
                         )
                     else:
-                        api_source.nominal_voltage = (
-                                float(source_equivalent_data["operatingvoltage1"]) * 10 ** 3 * math.sqrt(3)
+                        api_source.positive_sequence_impedance = complex(
+                            float(source_equivalent_data["firstlevelr1"]),
+                            float(source_equivalent_data["firstlevelx1"]),
                         )
-                except:
-                    pass
 
-                try:
-                    api_source.phases = phases # didn't assign this
-                except:
-                    pass
+                    # except:
+                    # pass
 
-                api_source.is_sourcebus = True
+                    if "zerosequenceresistance" in source_equivalent_data:
+                        api_source.zero_sequence_impedance = complex(
+                            float(source_equivalent_data["zerosequenceresistance"]),
+                            float(source_equivalent_data["zerosequencereactance"]),
+                        )
+                    else:
+                        api_source.zero_sequence_impedance = complex(
+                            float(source_equivalent_data["firstlevelr0"]),
+                            float(source_equivalent_data["firstlevelx0"]),
+                        )
 
-                try:
-                    api_source.rated_power = 10 ** 3 * float(
-                        source_equivalent_data["mva"]
-                    )  # Modified from source cases where substations can be used.
-                except:
-                    pass
+                    try:
+                        #Lusha
+                        #api_source.connecting_element = _from
+                        api_source.connecting_element = headnode
+                    except:
+                        pass
+                    # Lusha
+                    # mark the feeder model with source
+                    model.assigned_source = 1
 
-                # TODO: connection_type
-
-                try:
-                    api_source.phase_angle = source_equivalent_data["operatingangle1"]
-                except:
-                    pass
-
-                # try:
-                if "positivesequenceresistance" in source_equivalent_data:
-                    api_source.positive_sequence_impedance = complex(
-                        float(source_equivalent_data["positivesequenceresistance"]),
-                        float(source_equivalent_data["positivesequencereactance"]),
-                    )
-                else:
-                    api_source.positive_sequence_impedance = complex(
-                        float(source_equivalent_data["firstlevelr1"]),
-                        float(source_equivalent_data["firstlevelx1"]),
-                    )
-
-                # except:
-                # pass
-
-                if "zerosequenceresistance" in source_equivalent_data:
-                    api_source.zero_sequence_impedance = complex(
-                        float(source_equivalent_data["zerosequenceresistance"]),
-                        float(source_equivalent_data["zerosequencereactance"]),
-                    )
-                else:
-                    api_source.zero_sequence_impedance = complex(
-                        float(source_equivalent_data["firstlevelr0"]),
-                        float(source_equivalent_data["firstlevelx0"]),
-                    )
-
-                try:
-                    #Lusha
-                    #api_source.connecting_element = _from
-                    api_source.connecting_element = headnode
-                except:
-                    pass
-                # Lusha
-                # mark the feeder model with source
-                model.assigned_source = 1
-
-            #self.sub_source_flag[subname] = 1
+                #self.sub_source_flag[subname] = 1
 
         # store source
         for sid, sdata in sources.items():
