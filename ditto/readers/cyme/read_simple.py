@@ -4368,9 +4368,14 @@ class Reader(AbstractReader):
                     line_data = self.cables[settings["linecableid"]]
                     line_data["type"] = "balanced_line"
                 if line_data == None:
-                    print("linecableid:" + settings["linecableid"])
-                    print("WARNING:: Skipping Line {} !".format(sectionID))
-                    missing_line.write('Section ID:' + sectionID + ' Cable ID:'+settings["linecableid"]+'\n')
+                    #print("linecableid:" + settings["linecableid"])
+                    #print("WARNING:: Skipping Line {} !".format(sectionID))
+                    print("WARNING:: Issue with Line {} !".format(sectionID))
+                    print("No linecable " + settings["linecableid"] +" Use balanced_lines[DEFAULT] instead !")
+                    line_data = self.balanced_lines["DEFAULT"]
+                    line_data["type"] = "balanced_line"
+                    #missing_line.write('Section ID:' + sectionID + ' Cable ID:'+settings["linecableid"]+'\n')
+
                     # Lusha
                     # add cable information in equipment.txt: 1P1/0ACSR_13.8KV, 1P4/0CU_13.8KV, 3P#2ALP_4.33KV
                     # add cable 23256_CED

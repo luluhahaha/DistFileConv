@@ -173,6 +173,12 @@ class Writer(AbstractWriter):
         # else:
         #     self.separate_substations = False
 
+        # Lusha
+        # create folders
+        logger.info("Creating folders...")
+        s = self.create_folders(model)
+
+
         # Write the bus coordinates
         logger.info("Writing the bus coordinates...")
         if self.verbose:
@@ -306,6 +312,32 @@ class Writer(AbstractWriter):
             return "time"
         else:
             return None
+
+    # Lusha
+    # create folders for the feeder
+    def create_folders(self,model):
+        # Loop over the DiTTo objects
+        substation_name = model.substation_name
+        feeder_name = model.feeder_name
+
+        output_folder = None
+        output_redirect = None
+        if self.separate_substations:
+            output_folder = os.path.join(self.output_path, substation_name)
+            output_redirect = substation_name
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+        else:
+            output_folder = os.path.join(self.output_path)
+            output_redirect = ""
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+
+        if self.separate_feeders:
+            output_folder = os.path.join(output_folder, feeder_name)
+            output_redirect = os.path.join(output_redirect, feeder_name)
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
 
     def write_bus_coordinates(self, model):
         """Write the bus coordinates to a CSV file ('buscoords.csv' by default), with the following format:
@@ -4011,215 +4043,219 @@ class Writer(AbstractWriter):
         substation_name = model.substation_name
         feeder_name = model.feeder_name
         """Write the master.dss file."""
-        with open(
-            os.path.join(self.output_path, substation_name, feeder_name, self.output_filenames["master"]), "w"
-        ) as fp:
-            fp.write("Clear\n\nNew Circuit.Full_Network ")
+        try:
+            with open(
+                os.path.join(self.output_path, substation_name, feeder_name, self.output_filenames["master"]), "w"
+            ) as fp:
+                fp.write("Clear\n\nNew Circuit.Full_Network ")
 
 
-            for obj in model.models:
+                for obj in model.models:
+                    if (
+                        isinstance(obj, PowerSource) and obj.is_sourcebus == 1
+                    ):  # For RNM datasets only one source exists.
+                        if "_src" in obj.name:
+                            cleaned_name = obj.name[:-4]
+                        else:
+                            cleaned_name = obj.name
+                        if (
+                            hasattr(obj, "connecting_element")
+                            and obj.connecting_element is not None
+                        ):
+                            fp.write(
+                                "bus1={name} pu={pu}".format(
+                                    name=obj.connecting_element, pu=obj.per_unit
+                                )
+                            )
+                        else:
+                            logger.warning(
+                                "No valid name for connecting element of source {}. Using name of the source instead...".format(
+                                    cleaned_name
+                                )
+                            )
+                            fp.write(
+                                "bus1={name} pu={pu}".format(
+                                    name=cleaned_name, pu=obj.per_unit
+                                )
+                            )
+
+                        if (
+                            hasattr(obj, "nominal_voltage")
+                            and obj.nominal_voltage is not None
+                        ):
+                            # Lusha
+                            # add source voltage to base voltage
+                            self._baseKV_.add(obj.nominal_voltage * 10 ** -3)
+                            fp.write(
+                                " basekV={volt}".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
+                            )  # DiTTo in volts
+
+                        if (
+                            hasattr(obj, "positive_sequence_impedance")
+                            and obj.positive_sequence_impedance is not None
+                        ):
+                            R1 = obj.positive_sequence_impedance.real
+                            R1 = 0
+                            # if R1 == 0.0: #Adedoyin
+                            #     R1 = 0.0001
+                            X1 = obj.positive_sequence_impedance.imag
+                            X1 = 0.0001
+                            fp.write(
+                                " R1={R1} X1={X1}".format(
+                                    R1=self.float_to_str(R1), X1=self.float_to_str(X1)
+                                )
+                            )
+
+                        if (
+                            hasattr(obj, "zero_sequence_impedance")
+                            and obj.zero_sequence_impedance is not None
+                        ):
+                            R0 = obj.zero_sequence_impedance.real
+                            R0 = 0
+                            # if R0 == 0.0: #Adedoyin
+                            #     R0 = 0.0001
+                            X0 = obj.zero_sequence_impedance.imag
+                            X0 = 0.0001
+                            fp.write(
+                                " R0={R0} X0={X0}".format(
+                                    R0=self.float_to_str(R0), X0=self.float_to_str(X0)
+                                )
+                            )
+
+                fp.write("\n\n")
+
+
+                # Write WireData.dss first if it exists
+                if self.output_filenames["wiredata"] in self.files_to_redirect:
+                    fp.write(
+                        "Redirect {f}\n".format(f=self.output_filenames["wiredata"])
+                    )  # Currently wire data is in the base folder
+                    self.files_to_redirect.remove(self.output_filenames["wiredata"])
+
+                # Write CNDATA.dss first if it exists
+                if self.output_filenames["CNDATA"] in self.files_to_redirect:
+                    fp.write(
+                        "Redirect {f}\n".format(f=self.output_filenames["CNDATA"])
+                    )  # Currently wire data is in the base folder
+                    self.files_to_redirect.remove(self.output_filenames["CNDATA"])
+
+                # Write LineGeometry.dss then if it exists
+                if self.output_filenames["linegeometry"] in self.files_to_redirect:
+                    fp.write(
+                        "Redirect {f}\n".format(f=self.output_filenames["linegeometry"])
+                    )  # Currently line geometry is in the base folder
+                    self.files_to_redirect.remove(self.output_filenames["linegeometry"])
+
+                # Write LineCodes.dss then if it exists
+                if self.output_filenames["linecodes"] in self.files_to_redirect:
+                    fp.write("Redirect {f}\n".format(f=self.output_filenames["linecodes"]))
+                    self.files_to_redirect.remove(self.output_filenames["linecodes"])
+
+                # Write Lines.dss then if it exists
+                if self.output_filenames["lines"] in self.files_to_redirect:
+                    fp.write("Redirect {f}\n".format(f=self.output_filenames["lines"]))
+                    self.files_to_redirect.remove(self.output_filenames["lines"])
+
+                # Write Transformers.dss then if it exists
+                if self.output_filenames["transformers"] in self.files_to_redirect:
+                    fp.write(
+                        "Redirect {f}\n".format(f=self.output_filenames["transformers"])
+                    )
+                    self.files_to_redirect.remove(self.output_filenames["transformers"])
+
+                # Then, redirect the rest (the order should not matter anymore)
+                # Buscoords is not included here, only the combined buscoords file is included in the master file
+                for file in self.files_to_redirect:
+                    if (
+                        file[-1 * len(self.output_filenames["buses"]) :]
+                        != self.output_filenames["buses"]
+                    ):
+                        fp.write("Redirect {file}\n".format(file=file))
+
+                _baseKV_list_ = list(self._baseKV_)
+                _baseKV_list_ = sorted(_baseKV_list_)
+                _baseKV_list_round_ = []
+                for i in _baseKV_list_:
+                    temp = round(i, 4)
+                    # Lusha
+                    if temp not in _baseKV_list_round_ and temp!=0:
+                        _baseKV_list_round_.append(temp)
+
+
+    ############################################## Adedoyin ##############################################
+    #Adding energy meter to the first line connected to the source
+                fp.write("\nNew energymeter.M1 element=Transformer.Sub terminal=1\n")
+    ###################################################################################################################
+
+                fp.write("\nSet Voltagebases={}\n".format(_baseKV_list_round_))
+
+                fp.write("\nCalcvoltagebases\n\n")
+
+    ############################################## Adedoyin ##############################################
+                # for i in model.models:
+                #
+                #     if isinstance(i, PowerTransformer):
+                #         if hasattr(i, "from_element") and i.from_element is not None:
+                #             bus1 = i.from_element
+                #         else:
+                #             bus1 = None
+                #         if hasattr(i, "to_element") and i.to_element is not None:
+                #             bus2 = i.to_element
+                #         else:
+                #             bus2 = None
+                #
+                #         if bus1 is not None and bus2 is not None:
+                #             buses = [bus1, bus2]
+                #         else:
+                #             buses = None
+                #         bus2 = bus2.replace(".", "_")
+                #         bus1 = bus1.replace(".", "_")
+                #
+                #
+                #         if hasattr(i, "windings") and i.windings is not None:
+                #
+                #             if len(i.windings) == 2:
+                #
+                #                 for cnt, winding in enumerate(i.windings):
+                #
+                #
+                #                     if (
+                #                             hasattr(winding, "nominal_voltage")
+                #                             and winding.nominal_voltage is not None
+                #                     ):
+                #                         txt = "{kv}".format(
+                #                             kv=round(i.windings[0].nominal_voltage * 10 ** -3, 3)
+                #                         )  # OpenDSS in kvolts
+                #                         fp.write("\nSetkVBase Bus={txt1} kVLL={txt2}\n".format(txt1=bus1, txt2=txt))
+                #
+                #         if hasattr(i, "windings") and i.windings is not None:
+                #
+                #             for cnt, winding in enumerate(i.windings):
+                #
+                #
+                #                 if (
+                #                         hasattr(winding, "nominal_voltage")
+                #                         and winding.nominal_voltage is not None
+                #                 ):
+                #                     txt = "{kv}".format(
+                #                         kv=round(winding.nominal_voltage * 10 ** -3, 3)
+                #                     )  # OpenDSS in kvolts
+                #
+                #             fp.write("\nSetkVBase Bus={txt1} kVLL={txt2}\n".format(txt1=bus2, txt2=txt))
+
+    ###################################################################################################################
+
                 if (
-                    isinstance(obj, PowerSource) and obj.is_sourcebus == 1
-                ):  # For RNM datasets only one source exists.
-                    if "_src" in obj.name:
-                        cleaned_name = obj.name[:-4]
-                    else:
-                        cleaned_name = obj.name
-                    if (
-                        hasattr(obj, "connecting_element")
-                        and obj.connecting_element is not None
-                    ):
-                        fp.write(
-                            "bus1={name} pu={pu}".format(
-                                name=obj.connecting_element, pu=obj.per_unit
-                            )
-                        )
-                    else:
-                        logger.warning(
-                            "No valid name for connecting element of source {}. Using name of the source instead...".format(
-                                cleaned_name
-                            )
-                        )
-                        fp.write(
-                            "bus1={name} pu={pu}".format(
-                                name=cleaned_name, pu=obj.per_unit
-                            )
-                        )
+                    self.output_filenames["buses"] in self.files_to_redirect
+                ):  # Only write combined bus file to masterfile
+                    fp.write(
+                        "Buscoords {f}\n".format(f=self.output_filenames["buses"])
+                    )  # The buscoords are also written to base folder as well as the subfolders
 
-                    if (
-                        hasattr(obj, "nominal_voltage")
-                        and obj.nominal_voltage is not None
-                    ):
-                        # Lusha
-                        # add source voltage to base voltage
-                        self._baseKV_.add(obj.nominal_voltage * 10 ** -3)
-                        fp.write(
-                            " basekV={volt}".format(volt=round(obj.nominal_voltage * 10 ** -3, 4))
-                        )  # DiTTo in volts
+                fp.write("\nSolve")
+        except:
+            return
 
-                    if (
-                        hasattr(obj, "positive_sequence_impedance")
-                        and obj.positive_sequence_impedance is not None
-                    ):
-                        R1 = obj.positive_sequence_impedance.real
-                        R1 = 0
-                        # if R1 == 0.0: #Adedoyin
-                        #     R1 = 0.0001
-                        X1 = obj.positive_sequence_impedance.imag
-                        X1 = 0.0001
-                        fp.write(
-                            " R1={R1} X1={X1}".format(
-                                R1=self.float_to_str(R1), X1=self.float_to_str(X1)
-                            )
-                        )
-
-                    if (
-                        hasattr(obj, "zero_sequence_impedance")
-                        and obj.zero_sequence_impedance is not None
-                    ):
-                        R0 = obj.zero_sequence_impedance.real
-                        R0 = 0
-                        # if R0 == 0.0: #Adedoyin
-                        #     R0 = 0.0001
-                        X0 = obj.zero_sequence_impedance.imag
-                        X0 = 0.0001
-                        fp.write(
-                            " R0={R0} X0={X0}".format(
-                                R0=self.float_to_str(R0), X0=self.float_to_str(X0)
-                            )
-                        )
-
-            fp.write("\n\n")
-
-
-            # Write WireData.dss first if it exists
-            if self.output_filenames["wiredata"] in self.files_to_redirect:
-                fp.write(
-                    "Redirect {f}\n".format(f=self.output_filenames["wiredata"])
-                )  # Currently wire data is in the base folder
-                self.files_to_redirect.remove(self.output_filenames["wiredata"])
-
-            # Write CNDATA.dss first if it exists
-            if self.output_filenames["CNDATA"] in self.files_to_redirect:
-                fp.write(
-                    "Redirect {f}\n".format(f=self.output_filenames["CNDATA"])
-                )  # Currently wire data is in the base folder
-                self.files_to_redirect.remove(self.output_filenames["CNDATA"])
-
-            # Write LineGeometry.dss then if it exists
-            if self.output_filenames["linegeometry"] in self.files_to_redirect:
-                fp.write(
-                    "Redirect {f}\n".format(f=self.output_filenames["linegeometry"])
-                )  # Currently line geometry is in the base folder
-                self.files_to_redirect.remove(self.output_filenames["linegeometry"])
-
-            # Write LineCodes.dss then if it exists
-            if self.output_filenames["linecodes"] in self.files_to_redirect:
-                fp.write("Redirect {f}\n".format(f=self.output_filenames["linecodes"]))
-                self.files_to_redirect.remove(self.output_filenames["linecodes"])
-
-            # Write Lines.dss then if it exists
-            if self.output_filenames["lines"] in self.files_to_redirect:
-                fp.write("Redirect {f}\n".format(f=self.output_filenames["lines"]))
-                self.files_to_redirect.remove(self.output_filenames["lines"])
-
-            # Write Transformers.dss then if it exists
-            if self.output_filenames["transformers"] in self.files_to_redirect:
-                fp.write(
-                    "Redirect {f}\n".format(f=self.output_filenames["transformers"])
-                )
-                self.files_to_redirect.remove(self.output_filenames["transformers"])
-
-            # Then, redirect the rest (the order should not matter anymore)
-            # Buscoords is not included here, only the combined buscoords file is included in the master file
-            for file in self.files_to_redirect:
-                if (
-                    file[-1 * len(self.output_filenames["buses"]) :]
-                    != self.output_filenames["buses"]
-                ):
-                    fp.write("Redirect {file}\n".format(file=file))
-
-            _baseKV_list_ = list(self._baseKV_)
-            _baseKV_list_ = sorted(_baseKV_list_)
-            _baseKV_list_round_ = []
-            for i in _baseKV_list_:
-                temp = round(i, 4)
-                # Lusha
-                if temp not in _baseKV_list_round_ and temp!=0:
-                    _baseKV_list_round_.append(temp)
-
-
-############################################## Adedoyin ##############################################
-#Adding energy meter to the first line connected to the source
-            fp.write("\nNew energymeter.M1 element=Transformer.Sub terminal=1\n")
-###################################################################################################################
-
-            fp.write("\nSet Voltagebases={}\n".format(_baseKV_list_round_))
-
-            fp.write("\nCalcvoltagebases\n\n")
-
-############################################## Adedoyin ##############################################
-            # for i in model.models:
-            #
-            #     if isinstance(i, PowerTransformer):
-            #         if hasattr(i, "from_element") and i.from_element is not None:
-            #             bus1 = i.from_element
-            #         else:
-            #             bus1 = None
-            #         if hasattr(i, "to_element") and i.to_element is not None:
-            #             bus2 = i.to_element
-            #         else:
-            #             bus2 = None
-            #
-            #         if bus1 is not None and bus2 is not None:
-            #             buses = [bus1, bus2]
-            #         else:
-            #             buses = None
-            #         bus2 = bus2.replace(".", "_")
-            #         bus1 = bus1.replace(".", "_")
-            #
-            #
-            #         if hasattr(i, "windings") and i.windings is not None:
-            #
-            #             if len(i.windings) == 2:
-            #
-            #                 for cnt, winding in enumerate(i.windings):
-            #
-            #
-            #                     if (
-            #                             hasattr(winding, "nominal_voltage")
-            #                             and winding.nominal_voltage is not None
-            #                     ):
-            #                         txt = "{kv}".format(
-            #                             kv=round(i.windings[0].nominal_voltage * 10 ** -3, 3)
-            #                         )  # OpenDSS in kvolts
-            #                         fp.write("\nSetkVBase Bus={txt1} kVLL={txt2}\n".format(txt1=bus1, txt2=txt))
-            #
-            #         if hasattr(i, "windings") and i.windings is not None:
-            #
-            #             for cnt, winding in enumerate(i.windings):
-            #
-            #
-            #                 if (
-            #                         hasattr(winding, "nominal_voltage")
-            #                         and winding.nominal_voltage is not None
-            #                 ):
-            #                     txt = "{kv}".format(
-            #                         kv=round(winding.nominal_voltage * 10 ** -3, 3)
-            #                     )  # OpenDSS in kvolts
-            #
-            #             fp.write("\nSetkVBase Bus={txt1} kVLL={txt2}\n".format(txt1=bus2, txt2=txt))
-
-###################################################################################################################
-
-            if (
-                self.output_filenames["buses"] in self.files_to_redirect
-            ):  # Only write combined bus file to masterfile
-                fp.write(
-                    "Buscoords {f}\n".format(f=self.output_filenames["buses"])
-                )  # The buscoords are also written to base folder as well as the subfolders
-
-            fp.write("\nSolve")
         for i in model.models:
             if isinstance(i, Node) and i.is_substation_connection:
                 feeder_name = i.feeder_name
