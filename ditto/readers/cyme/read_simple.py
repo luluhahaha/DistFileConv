@@ -6723,37 +6723,38 @@ class Reader(AbstractReader):
 
         # Loop over the network file
         #for line in self.content:
+        try:
+            self.content = iter(self.file_network_regulator)
+            line = next(self.content)
 
-        self.content = iter(self.file_network_regulator)
-        line = next(self.content)
-
-        self.settings.update(
-            self.parser_helper(
-                line,
-                ["regulator_settings"],
-                [
-                    "sectionid",
-                    "eqid",
-                    "coordx",
-                    "coordy",
-                    "phaseon",
-                    "ct",
-                    "pt",
-                    "vseta",
-                    "vsetb",
-                    "vsetc",
-                    "bandwidtha",
-                    "bandwidthb",
-                    "bandwidthc",
-                    "tapa",
-                    "tapb",
-                    "tapc",
-                    "conn",
-                ],
-                mapp_regulator_settings,
+            self.settings.update(
+                self.parser_helper(
+                    line,
+                    ["regulator_settings"],
+                    [
+                        "sectionid",
+                        "eqid",
+                        "coordx",
+                        "coordy",
+                        "phaseon",
+                        "ct",
+                        "pt",
+                        "vseta",
+                        "vsetb",
+                        "vsetc",
+                        "bandwidtha",
+                        "bandwidthb",
+                        "bandwidthc",
+                        "tapa",
+                        "tapb",
+                        "tapc",
+                        "conn",
+                    ],
+                    mapp_regulator_settings,
+                )
             )
-        )
-
+        except:
+            pass
         #####################################################
         #                                                   #
         #                 EQUIPMENT FILE                    #
