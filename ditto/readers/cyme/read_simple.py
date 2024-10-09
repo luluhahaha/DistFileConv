@@ -1582,13 +1582,16 @@ class Reader(AbstractReader):
         }  # These correspond to the head node name and the feeder name
         headnodes = {}
 
-        self.content = iter(self.file_network_headnode)
-        # Lusha
-        #for line in self.file_network_headnode:
-        line = next(self.content)
-        headnodes.update(
-            self.parser_helper(line, ["headnodes"], ["nodeid", "networkid","structureid"], mapp)
-        )
+        try:
+            self.content = iter(self.file_network_headnode)
+            # Lusha
+            #for line in self.file_network_headnode:
+            line = next(self.content)
+            headnodes.update(
+                self.parser_helper(line, ["headnodes"], ["nodeid", "networkid","structureid"], mapp)
+            )
+        except:
+            pass
 
         for sid, headnode in headnodes.items():
             # Lusha
@@ -1660,65 +1663,74 @@ class Reader(AbstractReader):
         subs = {}
         source_equivalents = {}
 
-        # iterate source
-        self.content = iter(self.file_network_source)
-        line = next(self.content)
-        #for line in self.content:
-        sources.update(
-            self.parser_helper(
-                line,
-                ["source"],
-                # ["sourceid", "nodeid", "networkid", "desiredvoltage"],
-                # Lusha
-                # parse OperatingVoltageA
-                ["sourceid", "nodeid", "networkid", "operatingvoltagea"],
-                mapp,
-            )
-        )
-
-        self.content = iter(self.file_network_source_eqv)
-        line = next(self.content)
-        source_equivalents.update(
-            self.parser_helper(
-                line,
-                ["source_equivalent"],
-                [
-                    "nodeid",
-                    "voltage",
-                    "operatingangle1",
-                    "operatingangle2",
-                    "operatingangle3",
-                    "usesecondlevelimpedance", # TODO: add logic to look for this parameter and add secondlevel r & x in case it's selected
-                    "positivesequenceresistance",
-                    "positivesequencereactance",
-                    "zerosequencereactance",
-                    "zerosequenceresistance",
-                    "configuration",
-                    "basemva",
-                    "loadmodelname",
-                    "firstlevelr1",
-                    "firstlevelx1",
-                    "firstlevelr0",
-                    "firstlevelx0",
+        try:
+            # iterate source
+            self.content = iter(self.file_network_source)
+            line = next(self.content)
+            #for line in self.content:
+            sources.update(
+                self.parser_helper(
+                    line,
+                    ["source"],
+                    # ["sourceid", "nodeid", "networkid", "desiredvoltage"],
                     # Lusha
-                    "operatingvoltage1",
-                    "operatingvoltage2",
-                    "operatingvoltage3"
-                ],
-                mapp_source_equivalent,
+                    # parse OperatingVoltageA
+                    ["sourceid", "nodeid", "networkid", "operatingvoltagea"],
+                    mapp,
+                )
             )
-        )
+        except:
+            pass
 
-
-        #self.get_file_content("equipment")
-        self.content = iter(self.file_equipment_substation)
-        line = next(self.content)
-        #for line in self.content:
-        subs.update(
-            self.parser_helper(
-                line, ["substation"], ["id", "mva", "kvll", "conn"], mapp_sub
+        try:
+            self.content = iter(self.file_network_source_eqv)
+            line = next(self.content)
+            source_equivalents.update(
+                self.parser_helper(
+                    line,
+                    ["source_equivalent"],
+                    [
+                        "nodeid",
+                        "voltage",
+                        "operatingangle1",
+                        "operatingangle2",
+                        "operatingangle3",
+                        "usesecondlevelimpedance", # TODO: add logic to look for this parameter and add secondlevel r & x in case it's selected
+                        "positivesequenceresistance",
+                        "positivesequencereactance",
+                        "zerosequencereactance",
+                        "zerosequenceresistance",
+                        "configuration",
+                        "basemva",
+                        "loadmodelname",
+                        "firstlevelr1",
+                        "firstlevelx1",
+                        "firstlevelr0",
+                        "firstlevelx0",
+                        # Lusha
+                        "operatingvoltage1",
+                        "operatingvoltage2",
+                        "operatingvoltage3"
+                    ],
+                    mapp_source_equivalent,
+                )
             )
-        )
+        except:
+            pass
+
+        try:
+            #self.get_file_content("equipment")
+            self.content = iter(self.file_equipment_substation)
+            line = next(self.content)
+            #for line in self.content:
+            subs.update(
+                self.parser_helper(
+                    line, ["substation"], ["id", "mva", "kvll", "conn"], mapp_sub
+                )
+            )
+        except:
+            pass
+
         # store source equivalent
         for sid, source_equivalent_data in source_equivalents.items():
 
@@ -2369,20 +2381,23 @@ class Reader(AbstractReader):
         """
         self._nodes = []
 
-        # Open the network file
-        #self.get_file_content("network")
-        self.content = iter(self.file_network_node)
-        # Default mapp (positions if all fields are present in the format)
-        mapp = {
-            "nodeid": 0,
-            "ratedvoltage": 48,
-            "coordx": 2,
-            "coordy": 3,
-            "coordx1": 2,
-            "coordy1": 3,
-            "coordx2": 4,
-            "coordy2": 5,
-        }
+        try:
+            # Open the network file
+            #self.get_file_content("network")
+            self.content = iter(self.file_network_node)
+            # Default mapp (positions if all fields are present in the format)
+            mapp = {
+                "nodeid": 0,
+                "ratedvoltage": 48,
+                "coordx": 2,
+                "coordy": 3,
+                "coordx1": 2,
+                "coordy1": 3,
+                "coordx2": 4,
+                "coordy2": 5,
+            }
+        except:
+            pass
 
         nodes = {}
         node_connectors = {}
@@ -2410,13 +2425,16 @@ class Reader(AbstractReader):
         )
         #self.get_file_content("network")
         #for line in self.content:
-        self.content = iter(self.file_network_node)
-        line = next(self.content)
-        node_connectors.update(
-            self.parser_helper(
-                line, ["node_connector"], ["nodeid", "coordx", "coordy"], mapp
+        try:
+            self.content = iter(self.file_network_node)
+            line = next(self.content)
+            node_connectors.update(
+                self.parser_helper(
+                    line, ["node_connector"], ["nodeid", "coordx", "coordy"], mapp
+                )
             )
-        )
+        except:
+            pass
 
         for ID, node in nodes.items():
             # Lusha
@@ -3250,26 +3268,28 @@ class Reader(AbstractReader):
         #     )
         #
 
-
-        # loop over section
-        self.content = iter(self.file_network_section)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #              SECTIONS.                #
-        #                                       #
-        #########################################
-        #
-        self.settings = self.update_dict(
-            self.settings,
-            self.parser_helper(
-                line,
-                ["section"],
-                ["sectionid", "fromnodeid", "tonodeid", "phase"],
-                mapp_section,
-            ),
-        )
+        try:
+            # loop over section
+            self.content = iter(self.file_network_section)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #              SECTIONS.                #
+            #                                       #
+            #########################################
+            #
+            self.settings = self.update_dict(
+                self.settings,
+                self.parser_helper(
+                    line,
+                    ["section"],
+                    ["sectionid", "fromnodeid", "tonodeid", "phase"],
+                    mapp_section,
+                ),
+            )
+        except:
+            pass
 
         #####################################################
         #                                                   #
@@ -3283,262 +3303,291 @@ class Reader(AbstractReader):
         # Loop over the equipment file
         #for line in self.content:
             #print(line)
-        self.content = iter(self.file_equipment_line)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #                 LINES.                #
-        #                                       #
-        #########################################
-        #
-        self.balanced_lines.update(
-            self.parser_helper(
-                line,
-                ["line"],
-                [
-                    "id",
-                    "phasecondid",
-                    "neutralcondid",
-                    "spacingid",
-                    "amps",
-                    "r1",
-                    "r0",
-                    "x1",
-                    "x0",
-                    "b1",
-                    "b0",
-                ],
-                mapp_line,
-                {"type": "balanced_line"},
+        try:
+            self.content = iter(self.file_equipment_line)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #                 LINES.                #
+            #                                       #
+            #########################################
+            #
+            self.balanced_lines.update(
+                self.parser_helper(
+                    line,
+                    ["line"],
+                    [
+                        "id",
+                        "phasecondid",
+                        "neutralcondid",
+                        "spacingid",
+                        "amps",
+                        "r1",
+                        "r0",
+                        "x1",
+                        "x0",
+                        "b1",
+                        "b0",
+                    ],
+                    mapp_line,
+                    {"type": "balanced_line"},
+                )
             )
-        )
+        except:
+            pass
 
-        self.content = iter(self.file_equipment_line_unbalanced)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #          UNBALANCED LINES.            #
-        #                                       #
-        #########################################
-        #
-        self.unbalanced_lines.update(
-            self.parser_helper(
-                line,
-                ["unbalanced_line"],
-                [
-                    "id",
-                    "condid_a",
-                    "condid_b",
-                    "condid_c",
-                    "condid_n",
-                    "condid_n1",
-                    "condid_n2",
-                    "spacingid",
-                    "ra",
-                    "rb",
-                    "rc",
-                    "xa",
-                    "xb",
-                    "xc",
-                    "ba",
-                    "bb",
-                    "bc",
-                    "mutualresistanceab",
-                    "mutualresistancebc",
-                    "mutualresistanceca",
-                    "mutualreactanceab",
-                    "mutualreactancebc",
-                    "mutualreactanceca",
-                ],
-                mapp_line_unbalanced,
-                {"type": "unbalanced_line"},
+        try:
+            self.content = iter(self.file_equipment_line_unbalanced)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #          UNBALANCED LINES.            #
+            #                                       #
+            #########################################
+            #
+            self.unbalanced_lines.update(
+                self.parser_helper(
+                    line,
+                    ["unbalanced_line"],
+                    [
+                        "id",
+                        "condid_a",
+                        "condid_b",
+                        "condid_c",
+                        "condid_n",
+                        "condid_n1",
+                        "condid_n2",
+                        "spacingid",
+                        "ra",
+                        "rb",
+                        "rc",
+                        "xa",
+                        "xb",
+                        "xc",
+                        "ba",
+                        "bb",
+                        "bc",
+                        "mutualresistanceab",
+                        "mutualresistancebc",
+                        "mutualresistanceca",
+                        "mutualreactanceab",
+                        "mutualreactancebc",
+                        "mutualreactanceca",
+                    ],
+                    mapp_line_unbalanced,
+                    {"type": "unbalanced_line"},
+                )
             )
-        )
+        except:
+            pass
 
-        self.content = iter(self.file_equipment_spacing)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #             SPACING TABLE             #
-        #                                       #
-        #########################################
-        #
-        self.spacings.update(
-            self.parser_helper(
-                line,
-                ["spacing_table"],
-                [
-                    "id",
-                    "posofcond1_x",
-                    "posofcond1_y",
-                    "posofcond2_x",
-                    "posofcond2_y",
-                    "posofcond3_x",
-                    "posofcond3_y",
-                    "posofneutralcond_x",
-                    "posofneutralcond_y",
-                    "posofneutralcond_n2_x",
-                    "posofneutralcond_n2_y",
-                ],
-                mapp_spacing,
+        try:
+            self.content = iter(self.file_equipment_spacing)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #             SPACING TABLE             #
+            #                                       #
+            #########################################
+            #
+            self.spacings.update(
+                self.parser_helper(
+                    line,
+                    ["spacing_table"],
+                    [
+                        "id",
+                        "posofcond1_x",
+                        "posofcond1_y",
+                        "posofcond2_x",
+                        "posofcond2_y",
+                        "posofcond3_x",
+                        "posofcond3_y",
+                        "posofneutralcond_x",
+                        "posofneutralcond_y",
+                        "posofneutralcond_n2_x",
+                        "posofneutralcond_n2_y",
+                    ],
+                    mapp_spacing,
+                )
             )
-        )
+        except:
+            pass
 
-
-        self.content = iter(self.file_equipment_conductor)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #              CONDUCTOR                #
-        #                                       #
-        #########################################
-        #
-        self.conductors.update(
-            self.parser_helper(
-                line,
-                ["conductor"],
-                ["id", "diameter", "gmr", "r25", "amps", "withstandrating"],
-                mapp_conductor,
+        try:
+            self.content = iter(self.file_equipment_conductor)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #              CONDUCTOR                #
+            #                                       #
+            #########################################
+            #
+            self.conductors.update(
+                self.parser_helper(
+                    line,
+                    ["conductor"],
+                    ["id", "diameter", "gmr", "r25", "amps", "withstandrating"],
+                    mapp_conductor,
+                )
             )
-        )
+        except:
+            pass
 
-        self.content = iter(self.file_equipment_cable_concentric_neutral)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #       CONCENTRIC NEUTRAL CABLE        #
-        #                                       #
-        #########################################
-        #
-        self.concentric_neutral_cable.update(
-            self.parser_helper(
-                line,
-                ["concentric_neutral_cable"],
-                [
-                    "id",
-                    "r1",
-                    "r0",
-                    "x1",
-                    "x0",
-                    "amps",
-                    "phasecondid",
-                    "neutralcondid",
-                ],
-                mapp_concentric_neutral_cable,
+        try:
+            self.content = iter(self.file_equipment_cable_concentric_neutral)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #       CONCENTRIC NEUTRAL CABLE        #
+            #                                       #
+            #########################################
+            #
+            self.concentric_neutral_cable.update(
+                self.parser_helper(
+                    line,
+                    ["concentric_neutral_cable"],
+                    [
+                        "id",
+                        "r1",
+                        "r0",
+                        "x1",
+                        "x0",
+                        "amps",
+                        "phasecondid",
+                        "neutralcondid",
+                    ],
+                    mapp_concentric_neutral_cable,
+                )
             )
-        )
+        except:
+            pass
 
-        self.content = iter(self.file_equipment_cable)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #                 CABLE                 #
-        #                                       #
-        #########################################
-        #
-        self.cables.update(
-            self.parser_helper(
-                line,
-                ["cable"],
-                ["id", "r1", "r0", "x1", "x0", "amps"],
-                mapp_concentric_neutral_cable,
+        try:
+            self.content = iter(self.file_equipment_cable)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #                 CABLE                 #
+            #                                       #
+            #########################################
+            #
+            self.cables.update(
+                self.parser_helper(
+                    line,
+                    ["cable"],
+                    ["id", "r1", "r0", "x1", "x0", "amps"],
+                    mapp_concentric_neutral_cable,
+                )
             )
-        )
+        except:
+            pass
 
-        self.content = iter(self.file_equipment_switch)
-        line = next(self.content)
-        #########################################
-        #                                       #
-        #               SWITCHES                #
-        #                                       #
-        #########################################
-        #
-        self.switches.update(
-            self.parser_helper(
-                line, ["switch"], ["id", "amps", "kvll"], mapp_switch_eq
+        try:
+            self.content = iter(self.file_equipment_switch)
+            line = next(self.content)
+            #########################################
+            #                                       #
+            #               SWITCHES                #
+            #                                       #
+            #########################################
+            #
+            self.switches.update(
+                self.parser_helper(
+                    line, ["switch"], ["id", "amps", "kvll"], mapp_switch_eq
+                )
             )
-        )
+        except:
+            pass
 
-        self.content = iter(self.file_equipment_fuse)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #                 FUSES                 #
-        #                                       #
-        #########################################
-        #
-        self.fuses.update(
-            self.parser_helper(
-                line,
-                ["fuse"],
-                ["id", "amps", "kvll", "interruptingrating"],
-                mapp_network_protectors,  # Same as network protectors
+        try:
+            self.content = iter(self.file_equipment_fuse)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #                 FUSES                 #
+            #                                       #
+            #########################################
+            #
+            self.fuses.update(
+                self.parser_helper(
+                    line,
+                    ["fuse"],
+                    ["id", "amps", "kvll", "interruptingrating"],
+                    mapp_network_protectors,  # Same as network protectors
+                )
             )
-        )
+        except:
+            pass
 
-
-        self.content = iter(self.file_equipment_recloser)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #             RECLOSERS                 #
-        #                                       #
-        #########################################
-        #
-        self.reclosers.update(
-            self.parser_helper(
-                line,
-                ["recloser"],
-                ["id", "amps", "kvll", "interruptingrating"],
-                mapp_network_protectors,  # Same as network protectors
+        try:
+            self.content = iter(self.file_equipment_recloser)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #             RECLOSERS                 #
+            #                                       #
+            #########################################
+            #
+            self.reclosers.update(
+                self.parser_helper(
+                    line,
+                    ["recloser"],
+                    ["id", "amps", "kvll", "interruptingrating"],
+                    mapp_network_protectors,  # Same as network protectors
+                )
             )
-        )
+        except:
+            pass
 
-
-        self.content = iter(self.file_equipment_sectionalizer)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #          SECTIONALIZERS               #
-        #                                       #
-        #########################################
-        #
-        self.sectionalizers.update(
-            self.parser_helper(
-                line,
-                ["sectionalizer"],
-                ["id", "amps", "kvll", "interruptingrating"],
-                mapp_sectionalizers,
+        try:
+            self.content = iter(self.file_equipment_sectionalizer)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #          SECTIONALIZERS               #
+            #                                       #
+            #########################################
+            #
+            self.sectionalizers.update(
+                self.parser_helper(
+                    line,
+                    ["sectionalizer"],
+                    ["id", "amps", "kvll", "interruptingrating"],
+                    mapp_sectionalizers,
+                )
             )
-        )
+        except:
+            pass
 
-
-        self.content = iter(self.file_equipment_breaker)
-        line = next(self.content)
-        #print(line)
-        #########################################
-        #                                       #
-        #               BREAKERS                #
-        #                                       #
-        #########################################
-        #
-        self.breakers.update(
-            self.parser_helper(
-                line,
-                ["breaker"],
-                ["id", "amps", "kvll", "interruptingrating"],
-                mapp_network_protectors,  # Same as network protectors
+        try:
+            self.content = iter(self.file_equipment_breaker)
+            line = next(self.content)
+            #print(line)
+            #########################################
+            #                                       #
+            #               BREAKERS                #
+            #                                       #
+            #########################################
+            #
+            self.breakers.update(
+                self.parser_helper(
+                    line,
+                    ["breaker"],
+                    ["id", "amps", "kvll", "interruptingrating"],
+                    mapp_network_protectors,  # Same as network protectors
+                )
             )
-        )
+        except:
+            pass
 
 
         # #########################################
@@ -5493,52 +5542,54 @@ class Reader(AbstractReader):
         # Loop over the network file
         #for line in self.content:
 
-        self.content = iter(self.file_network_capacitor)
-        line = next(self.content)
-        #########################################
-        #                                       #
-        #             SERIE CAPACITOR           #
-        #                                       #
-        #########################################
-        #
-        self.settings.update(
-            self.parser_helper(
-                line,
-                ["serie_capacitor_settings"],
-                ["sectionid", "eqid", "coordx", "coordy"],
-                mapp_serie_capacitor_settings,
-                {"type": "serie"},
+        try:
+            self.content = iter(self.file_network_capacitor)
+            line = next(self.content)
+            #########################################
+            #                                       #
+            #             SERIE CAPACITOR           #
+            #                                       #
+            #########################################
+            #
+            self.settings.update(
+                self.parser_helper(
+                    line,
+                    ["serie_capacitor_settings"],
+                    ["sectionid", "eqid", "coordx", "coordy"],
+                    mapp_serie_capacitor_settings,
+                    {"type": "serie"},
+                )
             )
-        )
 
-        #########################################
-        #                                       #
-        #             SHUNT CAPACITOR           #
-        #                                       #
-        #########################################
-        #
-        self.settings.update(
-            self.parser_helper(
-                line,
-                ["shunt_capacitor_settings"],
-                [
-                    "sectionid",
-                    "shuntcapacitorid",
-                    "connection",
-                    "fixedkvara",
-                    "fixedkvarb",
-                    "fixedkvarc",
-                    "switchedkvara",
-                    "switchedkvarb",
-                    "switchedkvarc",
-                    "kv",
-                    "controllingphase",
-                ],
-                mapp_shunt_capacitor_settings,
-                {"type": "shunt"},
+            #########################################
+            #                                       #
+            #             SHUNT CAPACITOR           #
+            #                                       #
+            #########################################
+            #
+            self.settings.update(
+                self.parser_helper(
+                    line,
+                    ["shunt_capacitor_settings"],
+                    [
+                        "sectionid",
+                        "shuntcapacitorid",
+                        "connection",
+                        "fixedkvara",
+                        "fixedkvarb",
+                        "fixedkvarc",
+                        "switchedkvara",
+                        "switchedkvarb",
+                        "switchedkvarc",
+                        "kv",
+                        "controllingphase",
+                    ],
+                    mapp_shunt_capacitor_settings,
+                    {"type": "shunt"},
+                )
             )
-        )
-
+        except:
+            pass
         #####################################################
         #                                                   #
         #                 EQUIPMENT FILE                    #
@@ -5550,35 +5601,37 @@ class Reader(AbstractReader):
 
         # Loop over the equipment file
         #for line in self.content:
-
-        self.content = iter(self.file_equipment_capacitor)
-        line = next(self.content)
-        #########################################
-        #                                       #
-        #        SERIE CAPACITOR                #
-        #                                       #
-        #########################################
-        #
-        self.capacitors.update(
-            self.parser_helper(
-                line, ["serie_capacitor"], ["id", "reactance"], mapp_serie_capacitor
+        try:
+            self.content = iter(self.file_equipment_capacitor)
+            line = next(self.content)
+            #########################################
+            #                                       #
+            #        SERIE CAPACITOR                #
+            #                                       #
+            #########################################
+            #
+            self.capacitors.update(
+                self.parser_helper(
+                    line, ["serie_capacitor"], ["id", "reactance"], mapp_serie_capacitor
+                )
             )
-        )
 
-        #########################################
-        #                                       #
-        #        SHUNT CAPACITOR                #
-        #                                       #
-        #########################################
-        #
-        self.capacitors.update(
-            self.parser_helper(
-                line,
-                ["shunt_capacitor"],
-                ["id", "kvar", "kv", "type"],
-                mapp_shunt_capacitor,
+            #########################################
+            #                                       #
+            #        SHUNT CAPACITOR                #
+            #                                       #
+            #########################################
+            #
+            self.capacitors.update(
+                self.parser_helper(
+                    line,
+                    ["shunt_capacitor"],
+                    ["id", "kvar", "kv", "type"],
+                    mapp_shunt_capacitor,
+                )
             )
-        )
+        except:
+            pass
 
         for sectionID, settings in self.settings.items():
 
@@ -6102,128 +6155,131 @@ class Reader(AbstractReader):
         # Loop over the equipment file
         #for line in self.content:
 
-        self.content = iter(self.file_equipment_transformer)
-        line = next(self.content)
-        #########################################
-        #                                       #
-        #             AUTO TRANSFORMER          #
-        #                                       #
-        #########################################
-        #
-        self.auto_transformers.update(
-            self.parser_helper(
-                line,
-                ["auto_transformer"],
-                [
-                    "id",
-                    "kva",
-                    "connection_configuration",
-                    "noloadlosses",
-                    "isltc",
-                    "taps",
-                    "lowerbandwidth",
-                    "upperbandwidth",
-                ],
-                mapp_auto_transformer,
+        try:
+            self.content = iter(self.file_equipment_transformer)
+            line = next(self.content)
+            #########################################
+            #                                       #
+            #             AUTO TRANSFORMER          #
+            #                                       #
+            #########################################
+            #
+            self.auto_transformers.update(
+                self.parser_helper(
+                    line,
+                    ["auto_transformer"],
+                    [
+                        "id",
+                        "kva",
+                        "connection_configuration",
+                        "noloadlosses",
+                        "isltc",
+                        "taps",
+                        "lowerbandwidth",
+                        "upperbandwidth",
+                    ],
+                    mapp_auto_transformer,
+                )
             )
-        )
 
-        #########################################
-        #                                       #
-        #         GROUNDING TRANSFORMER         #
-        #                                       #
-        #########################################
-        #
-        self.grounding_transformers.update(
-            self.parser_helper(
-                line,
-                ["grounding_transformer"],
-                ["id", "ratedcapacity", "ratedvoltage", "connection_configuration"],
-                mapp_grounding_transformer,
+            #########################################
+            #                                       #
+            #         GROUNDING TRANSFORMER         #
+            #                                       #
+            #########################################
+            #
+            self.grounding_transformers.update(
+                self.parser_helper(
+                    line,
+                    ["grounding_transformer"],
+                    ["id", "ratedcapacity", "ratedvoltage", "connection_configuration"],
+                    mapp_grounding_transformer,
+                )
             )
-        )
 
-        #########################################
-        #                                       #
-        #  THREE WINDING AUTO TRANSFORMER       #
-        #                                       #
-        #########################################
-        #
-        # LTC controls not yet supported for three-winding transformers
-        self.three_winding_auto_transformers.update(
-            self.parser_helper(
-                line,
-                ["three_winding_auto_transformer"],
-                [
-                    "id",
-                    "primaryratedcapacity",
-                    "primaryvoltage",
-                    "secondaryratedcapacity",
-                    "secondaryvoltage",
-                    "tertiaryratedcapacity",
-                    "tertiaryvoltage",
-                    "noloadlosses",
-                ],
-                mapp_three_winding_auto_transformer,
+            #########################################
+            #                                       #
+            #  THREE WINDING AUTO TRANSFORMER       #
+            #                                       #
+            #########################################
+            #
+            # LTC controls not yet supported for three-winding transformers
+            self.three_winding_auto_transformers.update(
+                self.parser_helper(
+                    line,
+                    ["three_winding_auto_transformer"],
+                    [
+                        "id",
+                        "primaryratedcapacity",
+                        "primaryvoltage",
+                        "secondaryratedcapacity",
+                        "secondaryvoltage",
+                        "tertiaryratedcapacity",
+                        "tertiaryvoltage",
+                        "noloadlosses",
+                    ],
+                    mapp_three_winding_auto_transformer,
+                )
             )
-        )
 
-        #########################################
-        #                                       #
-        #      THREE WINDING TRANSFORMER        #
-        #                                       #
-        #########################################
-        #
-        # LTC controls not yet supported for three-winding transformers
-        self.three_winding_transformers.update(
-            self.parser_helper(
-                line,
-                ["three_winding_transformer"],
-                [
-                    "id",
-                    "primaryratedcapacity",
-                    "primaryvoltage",
-                    "secondaryratedcapacity",
-                    "secondaryvoltage",
-                    "tertiaryratedcapacity",
-                    "tertiaryvoltage",
-                    "noloadlosses",
-                ],
-                mapp_three_winding_transformer,
+            #########################################
+            #                                       #
+            #      THREE WINDING TRANSFORMER        #
+            #                                       #
+            #########################################
+            #
+            # LTC controls not yet supported for three-winding transformers
+            self.three_winding_transformers.update(
+                self.parser_helper(
+                    line,
+                    ["three_winding_transformer"],
+                    [
+                        "id",
+                        "primaryratedcapacity",
+                        "primaryvoltage",
+                        "secondaryratedcapacity",
+                        "secondaryvoltage",
+                        "tertiaryratedcapacity",
+                        "tertiaryvoltage",
+                        "noloadlosses",
+                    ],
+                    mapp_three_winding_transformer,
+                )
             )
-        )
 
-        #########################################
-        #                                       #
-        #             TRANSFORMER               #
-        #                                       #
-        #########################################
-        #
-        self.transformers.update(
-            self.parser_helper(
-                line,
-                ["transformer"],
-                [
-                    "id",
-                    "type",
-                    "kva",
-                    "kvllprim",
-                    "kvllsec",
-                    "z1",
-                    "z0",
-                    "xr",
-                    "xr0",
-                    "conn",
-                    "noloadlosses",
-                    "phaseshift",
-                    "isltc",
-                    "taps",
-                    "lowerbandwidth",
-                    "upperbandwidth",
-                ],
-                mapp_transformer,
+            #########################################
+            #                                       #
+            #             TRANSFORMER               #
+            #                                       #
+            #########################################
+            #
+            self.transformers.update(
+                self.parser_helper(
+                    line,
+                    ["transformer"],
+                    [
+                        "id",
+                        "type",
+                        "kva",
+                        "kvllprim",
+                        "kvllsec",
+                        "z1",
+                        "z0",
+                        "xr",
+                        "xr0",
+                        "conn",
+                        "noloadlosses",
+                        "phaseshift",
+                        "isltc",
+                        "taps",
+                        "lowerbandwidth",
+                        "upperbandwidth",
+                    ],
+                    mapp_transformer,
+                )
             )
-        )
+        except:
+            pass
 
         for sectionID, settings in self.settings.items():
 
@@ -6766,30 +6822,32 @@ class Reader(AbstractReader):
 
         # Loop over the network file
         #for line in self.content:
-
-        self.content = iter(self.file_equipment_regulator)
-        line = next(self.content)
-        self.regulators.update(
-            self.parser_helper(
-                line,
-                ["regulator"],
-                [
-                    "id",
-                    "type",
-                    "kva",
-                    "kva_1",
-                    "kva_2",
-                    "kva_3",
-                    "kva_4",
-                    "kvln",
-                    "forwardbandwidth",
-                    "bandwidth",
-                    "ct",
-                    "pt",
-                ],
-                mapp_regulators,
+        try:
+            self.content = iter(self.file_equipment_regulator)
+            line = next(self.content)
+            self.regulators.update(
+                self.parser_helper(
+                    line,
+                    ["regulator"],
+                    [
+                        "id",
+                        "type",
+                        "kva",
+                        "kva_1",
+                        "kva_2",
+                        "kva_3",
+                        "kva_4",
+                        "kvln",
+                        "forwardbandwidth",
+                        "bandwidth",
+                        "ct",
+                        "pt",
+                    ],
+                    mapp_regulators,
+                )
             )
-        )
+        except:
+            pass
 
         for sectionID, settings in self.settings.items():
 
